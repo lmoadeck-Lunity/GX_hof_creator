@@ -75,16 +75,14 @@ class hof_edit:
         addterminus_count = 0
         dist_of_dest_electronic_disps = {}
         for i in list_of_dest_electronic_disps:
-            # print(i)
+            
             self.num += 1
-            if i == '[addterminus]' and '[addterminus_allexit]':
+            if i == '[addterminus]' or i == '[addterminus_allexit]':
                 self.num = 0
                 self.next_line_is_section = True
                 addterminus_count += 1
-            if i == '[addterminus_allexit]':
-                allexit = True
-            else:
-                allexit = False
+                addterminus_state = i
+
             if self.num == 1 and self.next_line_is_section:
                 eric_code = i
             elif self.num == 2 and self.next_line_is_section:
@@ -93,7 +91,10 @@ class hof_edit:
                 entry['properties'] = {}
                 entry['properties']['eric_code'] = eric_code
                 entry['properties']['TTData_name'] = i
-                entry['properties']['PassAllExit'] = str(allexit)
+                if addterminus_state == '[addterminus_allexit]':
+                    entry['properties']['PassAllExit'] = True
+                else:
+                    entry['properties']['PassAllExit'] = False
                 dist_of_dest_electronic_disps[f'entry_{addterminus_count - 1}'] = entry
                 dist_of_dest_electronic_disps[f'entry_{addterminus_count - 1}']['name'] = i
             elif self.num == 3 and self.next_line_is_section:
@@ -115,19 +116,20 @@ class hof_edit:
             elif self.num > 10:
                 self.next_line_is_section = False
         with open(f"{self.filename}.json", "w") as outfile:
-            # write the dictionary to the file
+             # write the dictionary to the file
             json.dump(dist_of_dest_electronic_disps,outfile, indent = 8)
         return dist_of_dest_electronic_disps
+    
 
 
 
-
-hof = hof_edit('0_HanoverKMB.hof')
+hof = hof_edit('.gitignore_folder/31M_8w_2015.hof')
 print(hof.read_hof('stringcount_terminus'))
 
 #hof.create_list_of_dest_electronic_disps(hof.read_hof('addterminus'))
 dest_electronic_disps = hof.create_list_of_dest_electronic_disps('6', '2')
 print(hof.fit_addterminus_into_dictionary(dest_electronic_disps))
+
 
 
 
