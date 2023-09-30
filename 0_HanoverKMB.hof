@@ -1,0 +1,1086 @@
+#####TEMPLATE FILE#####
+SD200_SD202_Template.xml
+
+#####COMMENT#####
+
+#####ENDCOMMENT#####
+
+
+>>> Created: 25/4/2014, 20:8:3
+
+>>> This file was created with HOF Creator 1.1. Thank you for usage!
+>>> www.jan-kiesewalter.de
+
+
+[name]
+Hanover KMB Data 16042015
+
+[servicetrip]
+CTB logo
+
+
+stringcount_terminus
+6
+
+stringcount_busstop
+4
+
+
+
+######################################
+ TERMINI
+######################################
+
+[addterminus]
+0
+Idle
+no
+
+
+
+
+00000
+.........................
+[addterminus]
+101630
+101R Yu Man Square
+
+
+
+101R_2.bmp
+101R_1.bmp
+0101R
+.........................
+[addterminus]
+2592183
+259D Lung Mun Oasis
+
+
+259DX_3.bmp
+259DX_2.bmp
+259DX_1.bmp
+259DX
+.........................
+[addterminus]
+2592191
+259D Yau Tong
+
+
+259DX_3.bmp
+259DX_2.bmp
+259DY_1.bmp
+259DY
+
+.........................
+[addterminus]
+5110
+KMB
+no
+
+
+
+KMB.bmp
+000M1
+.........................
+[addterminus]
+5111
+Krankenhaus
+no
+
+
+
+KMB.bmp
+000M1
+
+.........................
+[addterminus]
+5112
+Bauernhof
+no
+
+
+
+KMB.bmp
+000M1
+
+
+
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+
+			Informationssysteme
+
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+
+
+................
+[addbusstop]
+94_TOWONGSHEK
+WELCOME ONBOARD
+19 21
+94_TOWONGSHEK
+94_TOWONGSHEK
+
+
+................
+[addbusstop]
+94_TOSAIKUNG
+94
+19 21
+94_TOSAIKUNG
+94_TOSAIKUNG
+
+
+................
+
+[addbusstop]
+ShaKokMei
+SHA KOK MEI
+03 04
+ShaKokMei
+ShaKokMei
+
+
+................
+[addbusstop]
+TaiWan
+TAI WAN
+03 04
+TaiWan
+TaiWan
+
+
+................
+
+[addbusstop]
+MakPin
+MAK PIN
+03 04
+MakPin
+MakPin
+
+
+................
+
+[addbusstop]
+_Pleaseholdthehandrails
+PLEASE HOLD THE@HANDRAILS
+05 06
+_Pleaseholdthehandrails
+_Pleaseholdthehandrails
+
+
+................
+[addbusstop]
+WongChukWan
+WONG CHUK WAN
+03 04
+WongChukWan
+WongChukWan
+
+
+
+................
+[addbusstop]
+TsoWoHang
+TSO WO HANG
+03 04
+TsoWoHang
+TsoWoHang
+
+
+................
+[addbusstop]
+FungSauRoad
+FUNG SAU ROAD
+03 04
+FungSauRoad
+FungSauRoad
+
+
+................
+
+[addbusstop]
+AhKungWan
+AH KUNG WAN
+10 10
+AhKungWan
+AhKungWan
+
+
+................
+[addbusstop]
+_DINGDONG
+
+01 05
+_DINGDONG
+_DINGDONG
+
+
+................
+[addbusstop]
+TaiMongTsai
+TAI MONG TSAI
+04 04
+$6.4
+$4.3
+
+
+................
+[addbusstop]
+TaiMongTsaiSanTsuen
+TAI MONG TSAI@SAN TSUEN
+04 04
+TaiMongTsaiSanTsuen
+TaiMongTsaiSanTsuen
+
+
+................
+[addbusstop]
+SaiKungOutdoorTrainingCamp
+SAI KUNG OUTDOOR@TRAINING CAMP
+05 05
+SaiKungOutdoorTrainingCamp
+SaiKungOutdoorTrainingCamp
+
+
+................
+[addbusstop]
+TsamChukWan
+TSAM CHUK WAN
+03 04
+TsamChukWan
+TsamChukWan
+
+
+................
+[addbusstop]
+WongKengTei
+WONG KENG TEI
+03 04
+WongKengTei
+WongKengTei
+
+
+................
+[addbusstop]
+PakTamChung
+PAK TAM CHUNG
+03 04
+PakTamChung
+PakTamChung
+
+
+................
+[addbusstop]
+SheungYiu
+SHEUNG YIU
+03 04
+SheungYiu
+SheungYiu
+
+
+................
+
+[addbusstop]
+TsakYueWu
+TSAK YUE WU
+03 04
+TsakYueWu
+TsakYueWu
+
+
+................
+[addbusstop]
+!LadyMacleHoseHolidayVillage
+LADY MACLEHOSE@HOLIDAY VILLAGE
+05 07
+!LadyMacleHoseHolidayVillage
+!LadyMacleHoseHolidayVillage
+
+
+................
+[addbusstop]
+PakTamAuManagementCenter
+PAK TAM AU@MANAGEMENT CTR
+04 05
+PakTamAuManagementCenter
+PakTamAuManagementCenter
+
+
+................
+[addbusstop]
+PakTamAu
+PAK TAM AU
+03 04
+PakTamAu
+PakTamAu
+
+
+................
+[addbusstop]
+UkTau
+UK TAU
+03 03
+UkTau
+UkTau
+
+
+................
+[addbusstop]
+KoTong
+KO TONG
+03 03
+KoTong
+KoTong
+
+
+................
+[addbusstop]
+KoTongHaYeung
+KO TONG HA YEUNG
+04 04
+KoTongHaYeung
+KoTongHaYeung
+
+
+................
+[addbusstop]
+TaiTan
+TAI TAN
+03 03
+TaiTan
+TaiTan
+
+
+................
+[addbusstop]
+TaiTanBarbecueSite
+TAI TAN@BARBECUE SITE
+04 05
+TaiTanBarbecueSite
+TaiTanBarbecueSite
+
+
+................
+[addbusstop]
+WongShekPierBusTerminus
+WONG SHEK PIER@ BUS TERMINUS
+05 05
+WongShekPierBusTerminus
+WongShekPierBusTerminus
+
+
+................
+[addbusstop]
+#94_ARRWONGSHEK
+THANK YOU@FOR TRAVELLING
+12 12
+#94_ARRWONGSHEK
+#94_ARRWONGSHEK
+
+................
+[addbusstop]
+#94_ARRSAIKUNG
+THANK YOU@FOR TRAVELLING
+12 12
+#94_ARRSAIKUNG
+#94_ARRSAIKUNG
+
+
+................
+[addbusstop]
+Blank
+-----
+01 01
+Blank
+Blank
+
+
+................
+[addbusstop]
+ToKwaPin
+TO KWA PIN
+03 04
+ToKwaPin
+ToKwaPin
+
+
+................
+[addbusstop]
+_TakeCareofChildrenAndElderly
+TAKE CARE OF@CHILDREN ELDERLY
+11 11
+_TakeCareofChildrenAndElderly
+_TakeCareofChildrenAndElderly
+
+
+................
+
+[addbusstop]
+SaiKungPoliceStation
+SAI KUNG@POLICE STATION
+04 04
+SaiKungPoliceStation
+SaiKungPoliceStation
+
+
+................
+[addbusstop]
+SaiKungBusTerminus
+SAI KUNG@BUS TERMINUS
+04 04
+SaiKungBusTerminus
+SaiKungBusTerminus
+
+
+................
+[addbusstop]
+94
+Wong Shek Pier      2
+Sai Kung            2
+$6.8
+$6.8
+
+................
+[addbusstop]
+284
+Ravana Garden       1
+Shatin Central      1
+$3.8
+$3.8
+................
+[addbusstop]
+296A
+Ngau Tau Kok MTR    1
+Sheung Tak          1
+$5.1
+$5.1
+
+................
+[addbusstop]
+48X
+Bayview Garden      2
+Wo Che              2
+$8.1
+$8.1
+
+................
+[addbusstop]
+48X_TOBAYVIEW
+48X
+17 21
+48X_TOBAYVIEW
+48X_TOBAYVIEW
+
+................
+[addbusstop]
+FungShunStreet
+FUNG SHUN STREET
+03 04
+FungShunStreet
+FungShunStreet
+
+................
+[addbusstop]
+LekYuenEstate
+LEK YUEN ESTATE
+03 04
+LekYuenEstate
+LekYuenEstate
+
+................
+[addbusstop]
+ShatinCentral
+SHATIN CENTRAL
+03 04
+ShatinCentral
+$4.5
+
+................
+[addbusstop]
+ShingMunTunnelBusInterchange
+SHING MUN TUNNEL@BUS INTERCHANGE
+04 04
+ShingMunTunnelBusInterchange
+ShingMunTunnelBusInterchange
+
+................
+[addbusstop]
+HoFungCollege
+HO FUNG COLLEGE
+03 04
+$5.8
+HoFungCollege
+
+................
+[addbusstop]
+LeiMukShueEstate
+LEI MUK SHUE@ESTATE
+03 04
+LeiMukShueEstate
+LeiMukShueEstate
+
+................
+[addbusstop]
+WoYiHopRoadSportsground
+WO YI HOP ROAD@SPORTSGROUND
+04 04
+WoYiHopRoadSportsground
+WoYiHopRoadSportsground
+
+................
+[addbusstop]
+CheungWingRoad
+CHEUNG WING ROAD
+03 04
+CheungWingRoad
+CheungWingRoad
+
+................
+[addbusstop]
+KinChuenStreet
+KIN CHUEN STREET
+03 04
+KinChuenStreet
+KinChuenStreet
+
+................
+[addbusstop]
+TaiWoHauMTRStation
+TAI WO HAU@MTR STATION
+04 04
+TaiWoHauMTRStation
+TaiWoHauMTRStation
+
+................
+[addbusstop]
+ChungOnStreet
+CHUNG ON STREET
+03 04
+ChungOnStreet
+ChungOnStreet
+
+................
+[addbusstop]
+KinMingStreet
+KIN MING STREET
+03 04
+KinMingStreet
+KinMingStreet
+
+................
+[addbusstop]
+WingHongHouseFukLoiEstate
+WING HONG HOUSE@FUK LOI ESTATE
+04 04
+WingHongHouseFukLoiEstate
+WingHongHouseFukLoiEstate
+
+................
+[addbusstop]
+TsuenKingCircutFlyover
+TSUEN KING@CIRCUT FLYOVER
+04 04
+TsuenKingCircutFlyover
+TsuenKingCircutFlyover
+
+................
+[addbusstop]
+ChaiWanKokStreet
+CHAI WAN KOK@ STREET
+03 04
+ChaiWanKokStreet
+ChaiWanKokStreet
+
+................
+[addbusstop]
+Phase3BelvedereGarden
+PHASE 3@BELVEDERE GARDEN
+04 05
+Phase3BelvedereGarden
+Phase3BelvedereGarden
+
+................
+[addbusstop]
+BayviewGardenBusTerminus
+BAYVIEW GARDEN@BUS TERMINUS
+04 04
+BayviewGardenBusTerminus
+BayviewGardenBusTerminus
+
+................
+[addbusstop]
+#48X_ARRBAYVIEW
+THANK YOU@FOR TRAVELLING
+11 11
+#48X_ARRBAYVIEW
+#48X_ARRBAYVIEW
+
+................
+[addbusstop]
+284_TORAVANA
+284
+18 20
+284_TORAVANA
+284_TORAVANA
+
+................
+[addbusstop]
+LuckyPlaza
+LUCKY PLAZA
+03 04
+LuckyPlaza
+LuckyPlaza
+
+................
+[addbusstop]
+RegalRiversideHotel
+REGAL RIVERSIDE@HOTEL
+04 04
+RegalRiversideHotel
+RegalRiversideHotel
+
+................
+[addbusstop]
+BelairGarden
+BELAIR GARDEN
+03 04
+BelairGarden
+BelairGarden
+
+................
+[addbusstop]
+CityoneShatin
+CITYONE SHATIN
+03 04
+CityoneShatin
+CityoneShatin
+
+................
+[addbusstop]
+_DINGDONG2
+ 
+01 05
+_DINGDONG2
+_DINGDONG2
+
+................
+[addbusstop]
+RavanaGarden
+RAVANA GARDEN
+03 04
+RavanaGarden
+RavanaGarden
+
+................
+[addbusstop]
+GardenVista
+GARDEN VISTA
+03 04
+GardenVista
+GardenVista
+
+................
+[addbusstop]
+RavanaGarden2
+RAVANA GARDEN
+03 04
+RavanaGarden2
+RavanaGarden2
+
+................
+[addbusstop]
+ShatinCentralBusTerminus
+SHATIN CENTRAL@BUS TERMINUS
+04 04
+ShatinCentralBusTerminus
+ShatinCentralBusTerminus
+
+................
+[addbusstop]
+#284_ARRSHATIN
+THANK YOU@FOR TRAVELLING
+10 09
+#284_ARRSHATIN
+#284_ARRSHATIN
+
+................
+[addbusstop]
+296A_TONTK
+296A
+18 12
+296A_TONTK
+296A_TONTK
+
+................
+[addbusstop]
+TongMingStreet
+TONG MING STREET
+03 04
+TongMingStreet
+TongMingStreet
+
+................
+[addbusstop]
+MillenniumCity
+MILLENNIUM CITY
+03 04
+MillenniumCity
+MillenniumCity
+................
+[addbusstop]
+NgauTauKokStation
+NGAU TAU KOK@MTR STATION
+04 04
+NgauTauKokStation
+NgauTauKokStation
+
+................
+[addbusstop]
+KwunTongTownCentre
+KWUN TONG@TOWN CENTRE
+04 04
+KwunTongTownCentre
+KwunTongTownCentre
+
+................
+[addbusstop]
+KwunTongSwimmingPool
+KWUN TONG@SWIMMING POOL
+04 04
+KwunTongSwimmingPool
+KwunTongSwimmingPool
+
+................
+[addbusstop]
+KwunTongPoliceStation
+KWUN TONG@POLICE STATION
+04 04
+KwunTongPoliceStation
+KwunTongPoliceStation
+................
+[addbusstop]
+TongMingCourt
+TONG MING COURT
+03 04
+TongMingCourt
+TongMingCourt
+
+................
+[addbusstop]
+SheungTakBusTerminus
+SHEUNG TAK@BUS TERMINUS
+04 04
+SheungTakBusTerminus
+SheungTakBusTerminus
+
+................
+[addbusstop]
+#296A_ARRSHEUNGTAK
+THANK YOU@FOR TRAVELLING
+09 11
+#296A_ARRSHEUNGTAK
+#296A_ARRSHEUNGTAK
+
+................
+[addbusstop]
+_!!CheapElderly!
+USE OCTOPUS@TO ENJOY@$2 FARE@CONCESSION
+21 23
+_!!CheapElderly!
+_!!CheapElderly!
+
+
+
+
+
+
+
+
+
+
+	[infosystem_trip]
+	{routecode} (z.B. '540001', integer)
+	{routestring} (ggf. f IBIS-Ger酹 oder vieleicht sp酹er auch zum Setzen)
+	{terminuscode}
+	{line string} (z.B. '54 ')
+
+	[infosystem_busstop]
+	{string0: IBIS-Name}
+	{string1: LCD 1. Zeile links}
+	{string2: LCD 1. Zeile rechts}
+	{string3: LCD 2. Zeile links}
+	{string4: LCD 2. Zeile rechts}
+
+===============================================================================
+	Slot 1
+===============================================================================
+
+Slot 1
+-----------------------------------
+
+[infosystem_trip]
+1
+WONG SHEK PIER BUS TERMINUS
+010
+94Y
+
+................
+
+[infosystem_busstop_list]
+29
+94
+94_TOWONGSHEK
+_!!CheapElderly!
+ShaKokMei
+TaiWan
+MakPin
+_Pleaseholdthehandrails
+WongChukWan
+TsoWoHang
+FungSauRoad
+AhKungWan
+_DINGDONG
+TaiMongTsai
+TaiMongTsaiSanTsuen
+SaiKungOutdoorTrainingCamp
+TsamChukWan
+WongKengTei
+PakTamChung
+SheungYiu
+TsakYueWu
+!LadyMacleHoseHolidayVillage
+PakTamAuManagementCenter
+PakTamAu
+UkTau
+KoTong
+TaiTan
+TaiTanBarbecueSite
+WongShekPierBusTerminus
+#94_ARRWONGSHEK
+Blank
+ 
+
+[infosystem_trip]
+2
+SAI KUNG
+010
+94Z
+
+................
+
+[infosystem_busstop_list]
+29
+94
+94_TOSAIKUNG
+KoTongHaYeung
+KoTong
+ToKwaPin
+PakTamAu
+PakTamAuManagementCenter
+!LadyMacleHoseHolidayVillage
+TsakYueWu
+SheungYiu
+PakTamChung
+_TakeCareofChildrenAndElderly
+WongKengTei
+TsamChukWan
+SaiKungOutdoorTrainingCamp
+TaiMongTsaiSanTsuen
+_DINGDONG
+TaiMongTsai
+AhKungWan
+FungSauRoad
+TsoWoHang
+WongChukWan
+MakPin
+TaiWan
+ShaKokMei
+SaiKungPoliceStation
+SaiKungBusTerminus
+#94_ARRSAIKUNG
+Blank
+
+Slot 2
+-----------------------------------
+
+[infosystem_trip]
+3
+WONG SHEK PIER BUS TERMINUS
+010
+94Y
+
+................
+
+[infosystem_busstop_list]
+16
+284
+284_TORAVANA
+LuckyPlaza
+RegalRiversideHotel
+BelairGarden
+CityoneShatin
+_DINGDONG2
+RavanaGarden
+GardenVista
+RavanaGarden2
+CityoneShatin
+BelairGarden
+RegalRiversideHotel
+ShatinCentralBusTerminus
+#284_ARRSHATIN
+Blank
+
+[infosystem_trip]
+4
+SAI KUNG
+010
+94Z
+
+................
+
+[infosystem_busstop_list]
+16
+284
+284_TORAVANA
+LuckyPlaza
+RegalRiversideHotel
+BelairGarden
+CityoneShatin
+_DINGDONG2
+RavanaGarden
+GardenVista
+RavanaGarden2
+CityoneShatin
+BelairGarden
+RegalRiversideHotel
+ShatinCentralBusTerminus
+#284_ARRSHATIN
+Blank
+
+
+Slot 3
+-----------------------------------
+
+[infosystem_trip]
+5
+WONG SHEK PIER BUS TERMINUS
+010
+94Y
+
+................
+
+[infosystem_busstop_list]
+13
+296A
+296A_TONTK
+TongMingStreet
+MillenniumCity
+_DINGDONG2
+NgauTauKokStation
+KwunTongTownCentre
+KwunTongSwimmingPool
+KwunTongPoliceStation
+TongMingCourt
+SheungTakBusTerminus
+#296A_ARRSHEUNGTAK
+Blank
+
+[infosystem_trip]
+6
+SAI KUNG
+010
+94Z
+
+
+[infosystem_busstop_list]
+13
+296A
+296A_TONTK
+TongMingStreet
+_DINGDONG
+MillenniumCity
+_DINGDONG2
+NgauTauKokStation
+KwunTongTownCentre
+KwunTongSwimmingPool
+KwunTongPoliceStation
+TongMingCourt
+SheungTakBusTerminus
+#296A_ARRSHEUNGTAK
+Blank
+
+
+Slot 4
+-----------------------------------
+
+[infosystem_trip]
+7
+WONG SHEK PIER BUS TERMINUS
+010
+94Y
+
+................
+
+[infosystem_busstop_list]
+21
+48X
+48X_TOBAYVIEW
+FungShunStreet
+LekYuenEstate
+ShatinCentral
+ShingMunTunnelBusInterchange
+_DINGDONG
+HoFungCollege
+LeiMukShueEstate
+WoYiHopRoadSportsground
+CheungWingRoad
+KinChuenStreet
+TaiWoHauMTRStation
+ChungOnStreet
+KinMingStreet
+WingHongHouseFukLoiEstate
+TsuenKingCircutFlyover
+ChaiWanKokStreet
+Phase3BelvedereGarden
+BayviewGardenBusTerminus
+#48X_ARRBAYVIEW
+Blank
+
+[infosystem_trip]
+8
+SAI KUNG
+010
+94Z
+
+
+[infosystem_busstop_list]
+22
+48X
+48X_TOWOCHE
+Phase1BelvedereGarden
+TsuenKingCircutFlyover
+TaiChungRoadFukLoiEstate
+MunLokDaiHa
+TaiHoRoad
+ChungOnStreet
+TaiWoHauMTRStation
+
+CheungWingRoad
+WoYiHopRoadSportsground
+
+LeiMukShueEstate
+HoFungCollege
+ShingMunTunnelBusInterchange
+ShatinCentralBusTerminus
+SauTsuenHouseLekYuenEstate
+FungWoEstate
+WoCheBusTerminus
+#48X_ARRWOCHE
+Blank
