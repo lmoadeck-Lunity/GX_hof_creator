@@ -70,7 +70,6 @@ no
 259DX_2.bmp
 259DY_1.bmp
 259DY
-
 .........................
 [addterminus]
 5110
@@ -82,7 +81,7 @@ no
 KMB.bmp
 000M1
 .........................
-[addterminus]
+[addterminus_allexit]
 5111
 Krankenhaus
 no
