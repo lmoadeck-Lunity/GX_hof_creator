@@ -1,5 +1,7 @@
 #hof editing module
 import json
+from tkinter import Tk     # from tkinter import Tk for Python 3.x
+from tkinter.filedialog import askopenfilename
 class hof_read:
     def __init__(self, filename):
         self.filename = filename
@@ -188,39 +190,16 @@ class hof_read:
                     else:
                         type_of_addbusstop = 'BUSSTOP'''
                     # print(saved_value_1,saved_value_2,saved_value_3,saved_value_4)
-                    try:    
-                        if int(saved_value_1[1]) == type(int) and int(saved_value_2[:-1]) == type(int) and int(saved_value_3[:-1]) == type(int):
-                            type_of_addbusstop = 'DDU'
-                            # print('DDU')
-                    except:
-                        try:
-                            if saved_value_4[0] == '$':
-                                type_of_addbusstop = 'DDU'
-                                # print('DDU')
-                        except:
-                            type_of_addbusstop = 'BUSSTOP'
-                            # print('BUSSTOP')
-                        else:
-                            type_of_addbusstop = 'DDU'
-                            # print('DDU')
-                    else:
-                        type_of_addbusstop = 'DDU'
-                        # print('DDU')
                     if '@' in saved_value_2 and ('$' in saved_value_4 or '$' in i):
                         type_of_addbusstop = 'section'
-                        # print('section')
                     elif ('$' in saved_value_4 or '$' in i) and '0' in saved_value_3:
                         type_of_addbusstop = 'section'
-                        # print('section')
                     elif '@' in saved_value_2 and ('$' not in saved_value_4 or '$' not in i):
                         type_of_addbusstop = 'BUSSTOP'
-                        # print('BUSSTOP')
-                    elif '' == saved_value_4 or '' == i:
+                    elif '' == saved_value_4 or '' == i or '0' in saved_value_3:
                         type_of_addbusstop = 'BUSSTOP'
-                        # print('BUSSTOP')
-                    elif '0' in saved_value_3:
-                        type_of_addbusstop = 'BUSSTOP'
-                        # print('BUSSTOP')
+                    else:
+                        type_of_addbusstop = 'DDU'
                 elif self.num == 5 and self.next_line_is_section:
                     if type_of_addbusstop == 'DDU':
                         dist_of_addbusstop[f'{saved_value_1}'] = {}
@@ -264,8 +243,80 @@ class hof_read:
 
         self.dist_of_dest_electronic_disps = fit_addbusstop_into_dictionary(self,self.list_of_dest_electronic_disps)
         return self.dist_of_dest_electronic_disps
+    def json_ex_infosystem(self):
+        def create_list_of_dest_electronic_disps(self):
+            list_of_dest_electronic_disps = []
+            addterminus_count = 0
+            self.next_line_is_section = False
+            with open(self.filename, 'r', encoding='utf-8') as f:
+                hof = f.readlines()
+                for i in hof:
+                    self.num += 1
+                    #print(int(int(stringcount_terminus)+1+int(commentcount)))
+                    # print(i.strip('\n'),self.num)
+                    if i == '[infosystem_trip]\n':
+                        self.num = 0
+                        self.next_line_is_section = True
+                        self.num_of_addterminus += 1
+                        # print('next line is section')
+                    if self.num == int(4) and not self.num_of_addterminus<=1:
+                        self.num = 0
+                        self.next_line_is_section = False
+                        break
+                    elif self.next_line_is_section:
+                        list_of_dest_electronic_disps.append(i.strip('\n'))
+            return list_of_dest_electronic_disps
+        def create_list_of_infosystem_busstop_list(self):
+            list_of_dest_electronic_disps = []
+            addterminus_count = 0
+            self.next_line_is_section = False
+            with open(self.filename, 'r', encoding='utf-8') as f:
+                hof = f.readlines()
+                for i in hof:
+                    self.num += 1
+                    #print(int(int(stringcount_terminus)+1+int(commentcount)))
+                    # print(i.strip('\n'),self.num)
+                    if i == '[infosystem_busstop_list]\n':
+                        self.num = 0
+                        self.next_line_is_section = True
+                        self.num_of_addterminus += 1
+                        # print('next line is section')
+                    if self.num == 1:
+                        number_of_busstops = i
+                    if self.num == 2:
+                        rt_no = i
+                        number_of_busstops = int(number_of_busstops) - 1
+                    if self.num <= int(number_of_busstops) + 2 and self.num > 2:
+                        list_of_dest_electronic_disps.append(i.strip('\n'))
+                        
+
+            
+        def fit_infosystem_into_dictionary(self, list_of_dest_electronic_disps):
+            for i in list_of_dest_electronic_disps:
+                self.num += 1
+                if self.num == 1:
+                    infosystem_num_order = i
+                elif self.num == 2:
+                    infosystem_trip_route = i
+                elif self.num == 3:
+                    infosystem_trip_type = i
+                elif self.num == 4:
+                    infosystem_trip_comment = i
+            dist_of_infosystem = {}
+            dist_of_infosystem['infosystem_trip'] = {}
+            dist_of_infosystem['infosystem_trip']['infosystem_num_order'] = infosystem_num_order
+            dist_of_infosystem['infosystem_trip']['infosystem_trip_route'] = infosystem_trip_route
+            dist_of_infosystem['infosystem_trip']['infosystem_trip_type'] = infosystem_trip_type
+            dist_of_infosystem['infosystem_trip']['infosystem_trip_comment'] = infosystem_trip_comment
+            with open(f"{self.filename}_infosystem.json", "w") as outfile:
+                    # write the dictionary to the file
+                json.dump(dist_of_infosystem,outfile, indent = 8)
+
+        
     
-hof=hof_read('.gitignore_folder/Cherryland_VC_KMB_8W.hof')
+Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
+filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
+hof=hof_read(filename)
 hof.json_ex_pai(hof.read_str('stringcount_terminus'),'2')
 hof.json_ex_busstop(hof.read_str('stringcount_busstop'),'3')
 
