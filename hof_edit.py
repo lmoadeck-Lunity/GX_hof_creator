@@ -269,6 +269,8 @@ class hof_read:
         def create_list_of_infosystem_busstop_list(self):
             list_of_dest_electronic_disps = []
             addterminus_count = 0
+            number_of_busstops = 0
+            abslout_list = []
             self.next_line_is_section = False
             with open(self.filename, 'r', encoding='utf-8') as f:
                 hof = f.readlines()
@@ -280,14 +282,23 @@ class hof_read:
                         self.num = 0
                         self.next_line_is_section = True
                         self.num_of_addterminus += 1
-                        # print('next line is section')
+                        print('next line is section')
                     if self.num == 1:
-                        number_of_busstops = i
+                        number_of_busstops = i.strip('\n')
+                        number_of_busstops = number_of_busstops.strip(' ')
+                        print(number_of_busstops)
                     if self.num == 2:
-                        rt_no = i
+                        rt_no = i.strip('\n')
                         number_of_busstops = int(number_of_busstops) - 1
                     if self.num <= int(number_of_busstops) + 2 and self.num > 2:
                         list_of_dest_electronic_disps.append(i.strip('\n'))
+                    
+                    if self.num == int(number_of_busstops) + 3:
+                        self.num = 0
+                        self.next_line_is_section = False
+                        abslout_list.append(rt_no)
+                        abslout_list.append(list_of_dest_electronic_disps)
+            return abslout_list
                         
 
             
@@ -311,6 +322,19 @@ class hof_read:
             with open(f"{self.filename}_infosystem.json", "w") as outfile:
                     # write the dictionary to the file
                 json.dump(dist_of_infosystem,outfile, indent = 8)
+        '''
+        def fit_infosystem_busstop_list_into_dictionary(self,list_of_dest_electronic_disps):
+            for i in list_of_dest_electronic_disps:
+                self.num +=1
+                if self.num == 1:
+                    infosystem_busstop_list = i
+                elif self.num == 2:
+                    dist_of_infosystem = {}
+                    dist_of_infosystem['infosystem_busstop_list'] = {}
+                    dist_of_infosystem['infosystem_busstop_list']['infosystem_busstop_list'] = infosystem_busstop_list
+                    '''
+
+        print(create_list_of_infosystem_busstop_list(self))
 
         
     
@@ -319,6 +343,7 @@ filename = askopenfilename() # show an "Open" dialog box and return the path to 
 hof=hof_read(filename)
 hof.json_ex_pai(hof.read_str('stringcount_terminus'),'2')
 hof.json_ex_busstop(hof.read_str('stringcount_busstop'),'3')
+hof.json_ex_infosystem()
 
 
 
