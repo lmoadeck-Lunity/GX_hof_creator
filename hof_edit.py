@@ -290,7 +290,9 @@ class hof_read:
                     if self.num == 2:
                         rt_no = i.strip('\n')
                         number_of_busstops = int(number_of_busstops) - 1
+                        print(number_of_busstops)
                     if self.num <= int(number_of_busstops) + 2 and self.num > 2:
+                        print(number_of_busstops)
                         list_of_dest_electronic_disps.append(i.strip('\n'))
                     
                     if self.num == int(number_of_busstops) + 3:
