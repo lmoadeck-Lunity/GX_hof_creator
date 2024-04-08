@@ -17,6 +17,7 @@ class hof_read:
         self.next_line_is_section = False
         self.commentcount = 0
         self.num_of_addterminus = 0
+        self.rtno = ""
 
     def read_str(self, section): #only for single lined sections
         self.next_line_is_section = False
@@ -243,100 +244,71 @@ class hof_read:
 
         self.dist_of_dest_electronic_disps = fit_addbusstop_into_dictionary(self,self.list_of_dest_electronic_disps)
         return self.dist_of_dest_electronic_disps
-    def json_ex_infosystem(self):
-        def create_list_of_dest_electronic_disps(self):
-            list_of_dest_electronic_disps = []
-            addterminus_count = 0
-            self.next_line_is_section = False
-            with open(self.filename, 'r', encoding='utf-8') as f:
-                hof = f.readlines()
-                for i in hof:
-                    self.num += 1
-                    #print(int(int(stringcount_terminus)+1+int(commentcount)))
-                    # print(i.strip('\n'),self.num)
-                    if i == '[infosystem_trip]\n':
-                        self.num = 0
-                        self.next_line_is_section = True
-                        self.num_of_addterminus += 1
-                        # print('next line is section')
-                    if self.num == int(4) and not self.num_of_addterminus<=1:
-                        self.num = 0
-                        self.next_line_is_section = False
-                        break
-                    elif self.next_line_is_section:
-                        list_of_dest_electronic_disps.append(i.strip('\n'))
-            return list_of_dest_electronic_disps
-        def create_list_of_infosystem_busstop_list(self):
-            list_of_dest_electronic_disps = []
-            addterminus_count = 0
-            number_of_busstops = 0
-            abslout_list = []
-            self.next_line_is_section = False
-            with open(self.filename, 'r', encoding='utf-8') as f:
-                hof = f.readlines()
-                for i in hof:
-                    self.num += 1
-                    #print(int(int(stringcount_terminus)+1+int(commentcount)))
-                    print(i.strip('\n'),self.num)
-                    if i == '[infosystem_busstop_list]\n':
-                        self.num = 0
-                        self.next_line_is_section = True
-                        self.num_of_addterminus += 1
-                        print('next line is section')
-                    if self.num == 1:
-                        number_of_busstops = i.strip('\n')
-                        number_of_busstops = number_of_busstops.strip(' ')
-                        print(number_of_busstops)
-                    if self.num == 2:
-                        rt_no = i.strip('\n')
-                        number_of_busstops = int(number_of_busstops) - 1
-                        print(number_of_busstops)
-                    if self.num <= int(number_of_busstops) + 0 and self.num > 2:
-                        print(number_of_busstops)
-                        list_of_dest_electronic_disps.append(i.strip('\n'))
-                    
-                    if self.num == int(number_of_busstops):
-                        self.num = 0
-                        self.next_line_is_section = False
-                        abslout_list.append(rt_no)
-                        abslout_list.append(list_of_dest_electronic_disps)
-            return abslout_list
-                        
+    def extract_infosystem_busstop_list(self):
+        hoflines = open(self.filename, 'r', encoding='utf-8').readlines()
+        busstop_list = []
+        direction_Y = []
+        direction_Z = []
+        num = 0
+        numberofstops = 0
+        next_line_is_section = False
+        for i in hoflines:
+            num +=1
+            print(num,i)
+            if i == "[infosystem_busstop_list]\n":
+                next_line_is_section = True
+                num = 300
+                continue
+            if next_line_is_section:
+                numberofstops = i.strip('\n')
+                numberofstops = int(numberofstops)
+                next_line_is_section = False
+            if num == 302:
+                self.rtno = i.strip('\n')
+                numberofstops -=1
+            #302 + numberofstops == end
+            if num >=303 and num < (303 + numberofstops):
+                busstop_list.append(i)
+            if num >= (303 + numberofstops):
+                num = 1000
+                
+                if direction_Y == []:
+                    direction_Y = busstop_list
+                    print(direction_Y,busstop_list)
+                    busstop_list = []
+                else:
+                    direction_Z = busstop_list
+                    print(direction_Z,busstop_list)
+                    busstop_list = []
+        #     {
+        #     "busstoplist": { 
+        #         "bus_rtno": "bus_rtno",
+        #         "busstoplist_Y": [],
+        #         "busstoplist_Z": []
+        #     }
+        busstop_dict = {}
+        busstop_dict['bus_rtno'] = self.rtno
+        busstop_dict['busstoplist_Y'] = direction_Y
+        busstop_dict['busstoplist_Z'] = direction_Z
+        with open(f"{self.filename}_busstoplist.json", "w") as outfile:
+            # write the dictionary to the file
+            json.dump(busstop_dict,outfile, indent = 8)
 
-            
-        def fit_infosystem_into_dictionary(self, list_of_dest_electronic_disps):
-            for i in list_of_dest_electronic_disps:
-                self.num += 1
-                if self.num == 1:
-                    infosystem_num_order = i
-                elif self.num == 2:
-                    infosystem_trip_route = i
-                elif self.num == 3:
-                    infosystem_trip_type = i
-                elif self.num == 4:
-                    infosystem_trip_comment = i
-            dist_of_infosystem = {}
-            dist_of_infosystem['infosystem_trip'] = {}
-            dist_of_infosystem['infosystem_trip']['infosystem_num_order'] = infosystem_num_order
-            dist_of_infosystem['infosystem_trip']['infosystem_trip_route'] = infosystem_trip_route
-            dist_of_infosystem['infosystem_trip']['infosystem_trip_type'] = infosystem_trip_type
-            dist_of_infosystem['infosystem_trip']['infosystem_trip_comment'] = infosystem_trip_comment
-            with open(f"{self.filename}_infosystem.json", "w") as outfile:
-                    # write the dictionary to the file
-                json.dump(dist_of_infosystem,outfile, indent = 8)
-        '''
-        def fit_infosystem_busstop_list_into_dictionary(self,list_of_dest_electronic_disps):
-            for i in list_of_dest_electronic_disps:
-                self.num +=1
-                if self.num == 1:
-                    infosystem_busstop_list = i
-                elif self.num == 2:
-                    dist_of_infosystem = {}
-                    dist_of_infosystem['infosystem_busstop_list'] = {}
-                    dist_of_infosystem['infosystem_busstop_list']['infosystem_busstop_list'] = infosystem_busstop_list
-                    '''
 
-        print(create_list_of_infosystem_busstop_list(self))
+    # def infobustop_tojson(self,busstop_list):
+    #     '''
+    #     {
+    #     "busstoplist": { 
+    #         "bus_rtno": "bus_rtno",
+    #         "busstoplist": []
+    #     }
+        
+    #     '''
+
+    #     return busstop_dict
+
+
+        
 
         
     
@@ -345,7 +317,8 @@ filename = askopenfilename() # show an "Open" dialog box and return the path to 
 hof=hof_read(filename)
 hof.json_ex_pai(hof.read_str('stringcount_terminus'),'2')
 hof.json_ex_busstop(hof.read_str('stringcount_busstop'),'3')
-hof.json_ex_infosystem()
+hof.extract_infosystem_busstop_list()
+
 
 
 
