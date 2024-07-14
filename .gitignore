@@ -1,1 +1,4 @@
 .gitignore_folder/
+__pycache__
+.vscode
+.git

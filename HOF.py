@@ -1,35 +1,41 @@
 from string import Template
 from types import SimpleNamespace
+class ericcode:
+    mapping = {'a': 11, 'b': 12, 'c':13,'d':21,'e':22,'f':23,'g':31,'h':32,'i':33,'j':41,'k':42,'l':43,'m':51,'n':52,'o':53,'p':61,'q':62,'r':63,'s':71,'t':72,'u':73,'v':81,'w':82,'x':83,'y':91,'z':92,'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9}
+    def __init__(self, code: str) -> None:
+        self.eric = map(str,[self.mapping[c] for c in code])
+    def __len__(self) -> int:
+        return len(''.join(self.eric))
+    def __str__(self) -> str:
+        returnstring = ''.join(self.eric)
+        if len(returnstring) < 6:
+            returnstring = returnstring + '0'
+        return returnstring
+
 class HOF:
     name = 'Default'
     servicetrip = 'Not In Service'
     def __init__(self,name:str='Default',servicetrip:str='Not In Service') -> None:
         self.name = name
         self.servicetrip = servicetrip
-    class ericcode:
-        mapping = {'a': 11, 'b': 12, 'c':13,'d':21,'e':22,'f':23,'g':31,'h':32,'i':33,'j':41,'k':42,'l':43,'m':51,'n':52,'o':53,'p':61,'q':62,'r':63,'s':71,'t':72,'u':73,'v':81,'w':82,'x':83,'y':91,'z':92,'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9}
-        def __init__(self, code: str) -> None:
-            self.eric = map(str,[self.mapping[c] for c in code])
-        def __len__(self) -> int:
-            return len(''.join(self.eric))
-        def __str__(self) -> str:
-            returnstring = ''.join(self.eric)
-            if len(returnstring) < 6:
-                returnstring = returnstring + '0'
-            return returnstring
+        self.ddu = []
+        self.stopreporter = []
+        self.termini = []
+        self.infosystem = []
+
 
 
     class Termini:
         def __init__(self,allexit:bool = False, eric: int = 0, destination: str = '', busfull: str = '', flip: list[str] = [], RTID: str = '') -> None: #flip is a list of strings, eric will be inputted as '289XZ' and converted to 2899192
             self.template = Template('''[addterminus$allexit]
-                                        $eric
-                                        $destination
-                                        $busfull
-                                        $pai_page4
-                                        $pai_page3
-                                        $pai_page2
-                                        $pai_page1
-                                        $RTID
+$eric
+$destination
+$busfull
+$pai_page4
+$pai_page3
+$pai_page2
+$pai_page1
+$RTID
                                         .........................
                                     ''')
             self._allexit = '_allexit' if allexit else ''
@@ -55,7 +61,7 @@ class HOF:
             return str(self._eric)
         @eric.setter
         def eric(self, value: str) -> None:
-            self._eric = str(HOF.ericcode(value))
+            self._eric = str(ericcode(value))
             self._RTID = value[:3]
         @property
         def RTID(self) -> str:
@@ -92,19 +98,19 @@ class HOF:
     class Busstop_Stopreporter:
         def __init__(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0) -> None:
             self.template = Template('''[addbusstop]
-                                        $name
-                                        $EngDisplay
-                                        $ChiSeconds $EngSeconds
-                                        $Outbound_sectionfare
-                                        $Inbound_sectionfare
-                                        .........................
+$name
+$EngDisplay
+$ChiSeconds $EngSeconds
+$Outbound_sectionfare
+$Inbound_sectionfare
+.........................
                                     ''')
             self._name = name
             self._EngDisplay = EngDisplay
             self._ChiSeconds = str(ChiSeconds).rjust(2,'0')
             self._EngSeconds = str(EngSeconds).rjust(2,'0')
-            self._Outbound_sectionfare = f"${Outbound_sectionfare:.1f}"
-            self._Inbound_sectionfare = f"${Inbound_sectionfare:.1f}"
+            self._Outbound_sectionfare = f"${Outbound_sectionfare:.1f}" if Outbound_sectionfare != 0.0 else name
+            self._Inbound_sectionfare = f"${Inbound_sectionfare:.1f}" if Inbound_sectionfare != 0.0 else name
         @property
         def name(self) -> str:
             return self._name
@@ -143,7 +149,7 @@ class HOF:
 
         @Outbound_sectionfare.setter
         def Outbound_sectionfare(self, value: float) -> None:
-            self._Outbound_sectionfare = f"${value:.1f}"
+            self._Outbound_sectionfare = f"${value:.1f}" if value != 0.0 else self._name
 
         @property
         def Inbound_sectionfare(self) -> float:
@@ -151,19 +157,19 @@ class HOF:
 
         @Inbound_sectionfare.setter
         def Inbound_sectionfare(self, value: float) -> None:
-            self._Inbound_sectionfare = f"${value:.1f}"
+            self._Inbound_sectionfare = f"${value:.1f}" if value != 0.0 else self._name
         def __str__(self) -> str:
             return self.template.substitute(name=self._name, EngDisplay=self._EngDisplay, ChiSeconds=self._ChiSeconds, EngSeconds=self._EngSeconds, Outbound_sectionfare=self._Outbound_sectionfare, Inbound_sectionfare=self._Inbound_sectionfare)
         
     class Busstop_DDU:
         def __init__(self, RTNO:str = '',Outbound_dir:str = '',Inbound_dir:str = '',Outbound_price:float = 0.0,Inbound_price:float = 0.0,sectiontimes_Y:int = 0,sectiontimes_Z:int = 0) -> None:
             self.template = Template('''[addbusstop]
-                                        $RTNO
-                                        $Outbound_dir \t\t$sectiontimes_Y
-                                        $Inbound_dir \t\t$sectiontimes_Z
-                                        $Outbound_price
-                                        $Inbound_price
-                                        .........................
+$RTNO
+$Outbound_dir \t\t$sectiontimes_Y
+$Inbound_dir \t\t$sectiontimes_Z
+$Outbound_price
+$Inbound_price
+.........................
                                     ''')
             self._RTNO = RTNO
             self._Outbound_dir = Outbound_dir
@@ -221,12 +227,12 @@ class HOF:
         class trip:
             def __init__(self,eric:str =  '',Destination:str = '',RouteNo:str = '') -> None:
                 self.template = Template('''[infosystem_trip]
-                            $ericcode
-                            $Destination
-                            $ericcode
-                            $routenoanddir
+$ericcode
+$Destination
+$ericcode
+$routenoanddir
                                 ''')
-                self._ericcode = str(HOF.ericcode(eric))
+                self._ericcode = str(ericcode(eric))
                 self._Destination = Destination
                 self._routeno = RouteNo
             @property
@@ -234,7 +240,7 @@ class HOF:
                 return str(self._ericcode)
             @ericcode.setter
             def ericcode(self, value: str) -> None:
-                self._ericcode = str(HOF.ericcode(value))
+                self._ericcode = str(ericcode(value))
             @property
             def Destination(self) -> str:
                 return self._Destination
@@ -252,9 +258,9 @@ class HOF:
         class busstop_list:
             def __init__(self,bus_stops:list[str] = [],rtno:str = '') -> None:
                 self.template = Template('''[infosystem_busstop_list]
-                            $amount_of_stops
-                            $rtno
-                            $busstops
+$amount_of_stops
+$rtno
+$busstops
                                 ''')
                 self._busstops = bus_stops
                 self._rtno = rtno
@@ -286,4 +292,16 @@ class HOF:
                 return self.template.substitute(amount_of_stops=self._amount_of_stops, rtno=self._rtno, busstops=self.busstops)
 
 
-    
+    def add_ddu(self, RTNO:str = '',Outbound_dir:str = '',Inbound_dir:str = '',Outbound_price:float = 0.0,Inbound_price:float = 0.0,sectiontimes_Y:int = 0,sectiontimes_Z:int = 0) -> None:
+        self.ddu.append(self.Busstop_DDU(RTNO,Outbound_dir,Inbound_dir,Outbound_price,Inbound_price,sectiontimes_Y,sectiontimes_Z))
+    def add_stopreporter(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0) -> None:
+        self.stopreporter.append(self.Busstop_Stopreporter(name,EngDisplay,ChiSeconds,EngSeconds,Outbound_sectionfare,Inbound_sectionfare))
+    def add_terminus(self,allexit:bool = False, eric: int = 0, destination: str = '', busfull: str = '', flip: list[str] = [], RTID: str = '') -> None:
+        self.termini.append(self.Termini(allexit, eric, destination, busfull, flip, RTID))
+    def add_infosystem(self,eric:str =  '',Destination:str = '',RouteNo:str = '') -> None:
+        self.infosystem.append(self.Infosystem.trip(eric,Destination,RouteNo))
+    def add_busstop_list(self,bus_stops:list[str] = [],rtno:str = '') -> None:
+        self.infosystem.append(self.Infosystem.busstop_list(bus_stops,rtno))
+    def showfullhof(self) -> str:
+        returnstring = '\n'.join(['\n'.join(self.ddu),'\n'.join(self.stopreporter),'\n'.join(self.termini),'\n'.join(self.infosystem)])
+        return returnstring
