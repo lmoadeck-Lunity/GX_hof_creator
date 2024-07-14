@@ -23,8 +23,29 @@ class HOF:
     def __init__(self,name:str='Default',servicetrip:str='Not In Service') -> None:
         self.name = name
         self.servicetrip = servicetrip
+        self.template = Template('''------------------------------------------
+Created with Hof Creator for GX7767 Hoilun
+        https://github.com/FreeHK-Lunity/GX_hof_creator/
+------------------------------------------
 
+#####################
+    General Info     
+#####################
+[name]
+$name
 
+[servicetrip]
+$servicetrip
+
+stringcount_terminus
+6
+
+stringcount_busstop
+4
+#####################
+    Destination
+#####################
+''')
 
 
     class Termini:
@@ -257,6 +278,10 @@ $Inbound_price
             return self.template.substitute(RTNO=self._RTNO, Outbound_dir=self._Outbound_dir, Inbound_dir=self._Inbound_dir, Outbound_price=self._Outbound_price, Inbound_price=self._Inbound_price, sectiontimes_Y=self._sectiontimes_Y, sectiontimes_Z=self._sectiontimes_Z)
         
     class Infosystem:
+        '''
+        Modifications of the Infosystem class will be made for enforcing the correct format of infosystems
+        (infosystem_trip and infosystem_busstop_list needs to be in a pair for the correct format, and both needs to be in a pair for GPSHoilun to read the hof correctly)
+        '''
         class trip:
             def __init__(self,eric:str =  '',Destination:str = '',RouteNo:str = '') -> None:
                 self.template = Template('''[infosystem_trip]
@@ -287,7 +312,7 @@ $routenoanddir
             def routeno(self, value: str) -> None:
                 self._routeno = f"{value} {self._Destination}"
             def __str__(self) -> str:
-                return self.template.substitute(ericcode=self._ericcode, Destination=self._Destination, routenoanddir=self._routeno)
+                return self.template.substitute(ericcode=self._ericcode, Destination=self._Destination, routenoanddir=f"{self._routeno} {self._Destination} ")
         class busstop_list:
             def __init__(self,bus_stops:list[str] = [],rtno:str = '') -> None:
                 self.template = Template('''[infosystem_busstop_list]
@@ -336,5 +361,5 @@ $busstops
     def add_busstop_list(self,bus_stops:list[str] = [],rtno:str = '') -> None:
         self.infosystem.append(self.Infosystem.busstop_list(bus_stops,rtno))
     def showfullhof(self) -> str:
-        returnstring = '\n'.join(['\n'.join(self.ddu),'\n'.join(self.stopreporter),'\n'.join(self.termini),'\n'.join(self.infosystem)])
+        returnstring = '\n'.join([''.join(self.template.substitute(name = self.name,servicetrip = self.servicetrip)),'\n'.join(str(i) for i in self.ddu),'\n'.join((str(i) for i in self.stopreporter)),'\n'.join((str(i) for i in self.termini)),'\n'.join((str(i) for i in self.infosystem))])
         return returnstring
