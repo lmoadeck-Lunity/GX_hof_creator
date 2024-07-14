@@ -3,7 +3,7 @@ from types import SimpleNamespace
 class ericcode:
     mapping = {'a': 11, 'b': 12, 'c':13,'d':21,'e':22,'f':23,'g':31,'h':32,'i':33,'j':41,'k':42,'l':43,'m':51,'n':52,'o':53,'p':61,'q':62,'r':63,'s':71,'t':72,'u':73,'v':81,'w':82,'x':83,'y':91,'z':92,'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9}
     def __init__(self, code: str) -> None:
-        self.eric = map(str,[self.mapping[c] for c in code])
+        self.eric = map(str,[self.mapping[c] for c in code.lower()])
     def __len__(self) -> int:
         return len(''.join(self.eric))
     def __str__(self) -> str:
@@ -15,13 +15,15 @@ class ericcode:
 class HOF:
     name = 'Default'
     servicetrip = 'Not In Service'
+    ddu = []
+    stopreporter = []
+    termini = []
+    infosystem = []
+    
     def __init__(self,name:str='Default',servicetrip:str='Not In Service') -> None:
         self.name = name
         self.servicetrip = servicetrip
-        self.ddu = []
-        self.stopreporter = []
-        self.termini = []
-        self.infosystem = []
+
 
 
 
@@ -111,13 +113,26 @@ $Inbound_sectionfare
             self._EngSeconds = str(EngSeconds).rjust(2,'0')
             self._Outbound_sectionfare = f"${Outbound_sectionfare:.1f}" if Outbound_sectionfare != 0.0 else name
             self._Inbound_sectionfare = f"${Inbound_sectionfare:.1f}" if Inbound_sectionfare != 0.0 else name
+            self._Autoskip = False
+            self._pages = 1
+            self._engscroll = self._EngDisplay.count('@') // 2
+
         @property
         def name(self) -> str:
             return self._name
 
         @name.setter
         def name(self, value: str) -> None:
-            self._name = value
+            modified_name = value
+            if self._engscroll > 2 and not modified_name[-1] == '!':
+                modified_name += "!"
+            if self._pages == 2 and not (modified_name[0:1] == '!' or modified_name[0:2] == '_!'):
+                modified_name = '!' + modified_name
+            if self._pages == 3 and not (modified_name[0:2] == '!!' or modified_name[0:3] == '_!!'):
+                modified_name = '!' + modified_name
+            if self._Autoskip and not modified_name[-1] == '_':
+                modified_name += "_"
+            self._name = modified_name
 
         @property
         def EngDisplay(self) -> str:
@@ -126,7 +141,9 @@ $Inbound_sectionfare
         @EngDisplay.setter
         def EngDisplay(self, value: str) -> None:
             self._EngDisplay = value
-
+            self._engscroll = self._EngDisplay.count('@') / 2
+            if self._engscroll > 2:
+                self._name = self._name #this is to trigger the setter of name to add the exclamation mark
         @property
         def ChiSeconds(self) -> int:
             return int(self._ChiSeconds)
@@ -160,6 +177,22 @@ $Inbound_sectionfare
             self._Inbound_sectionfare = f"${value:.1f}" if value != 0.0 else self._name
         def __str__(self) -> str:
             return self.template.substitute(name=self._name, EngDisplay=self._EngDisplay, ChiSeconds=self._ChiSeconds, EngSeconds=self._EngSeconds, Outbound_sectionfare=self._Outbound_sectionfare, Inbound_sectionfare=self._Inbound_sectionfare)
+        
+        def add_chi_page(self) -> None:
+            if self._pages == 3:
+                print("GPSHoilun does not support more than 3 pages")
+                return
+            self._pages += 1
+            self._name = self._name #this is to trigger the setter of name to add the exclamation mark
+        @property
+        def pass_autoskip(self) -> bool:
+            return self._Autoskip
+        @pass_autoskip.setter
+        def pass_autoskip(self, value: bool) -> None:
+            self._Autoskip = value
+            self._name = self._name #this is to trigger the setter of name to add the underscore
+        # def set_pass(self, value: bool) -> None:
+        #     self._Autoskip = value
         
     class Busstop_DDU:
         def __init__(self, RTNO:str = '',Outbound_dir:str = '',Inbound_dir:str = '',Outbound_price:float = 0.0,Inbound_price:float = 0.0,sectiontimes_Y:int = 0,sectiontimes_Z:int = 0) -> None:
