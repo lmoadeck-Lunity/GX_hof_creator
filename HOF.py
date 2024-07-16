@@ -25,7 +25,7 @@ class HOF:
         self.servicetrip = servicetrip
         self.template = Template('''------------------------------------------
 Created with Hof Creator for GX7767 Hoilun
-        https://github.com/FreeHK-Lunity/GX_hof_creator/
+https://github.com/FreeHK-Lunity/GX_hof_creator/
 ------------------------------------------
 
 #####################
@@ -282,6 +282,7 @@ $Inbound_price
         Modifications of the Infosystem class will be made for enforcing the correct format of infosystems
         (infosystem_trip and infosystem_busstop_list needs to be in a pair for the correct format, and both needs to be in a pair for GPSHoilun to read the hof correctly)
         '''
+        
         class trip:
             def __init__(self,eric:str =  '',Destination:str = '',RouteNo:str = '') -> None:
                 self.template = Template('''[infosystem_trip]
@@ -348,7 +349,26 @@ $busstops
                 self._amount_of_stops = value
             def __str__(self) -> str:
                 return self.template.substitute(amount_of_stops=self._amount_of_stops, rtno=self._rtno, busstops=self.busstops)
-
+    
+        def __init__(self,single_or_dual_dir:bool,route:str='',dir1:str='',dir2:str='',bustoplist1:list[str]=[],bustoplist2:list[str]=[]) -> None: 
+            #route must be inputted as '289X', we will automaticllu add Y and Z at the end
+            #single_or_dual_dir with True being dual direction and False being single direction
+            if single_or_dual_dir:
+                self.infosystem_busroute_dualdirections = [
+                    self.trip(f'{route}Y',dir1,route),
+                    self.busstop_list(bustoplist1,f'{route}'),
+                    self.trip(f'{route}Z',dir2,route),
+                    self.busstop_list(bustoplist2,f'{route}')]
+            else:
+                self.infosystem_busroute_singledirection = [
+                    self.trip(route,dir1,route),
+                    self.busstop_list(bustoplist1,route),
+                    self.trip(route,dir1,route),
+                    self.busstop_list(bustoplist1,route)
+                    ]
+        def __str__(self) -> str:
+            return '\n'.join([str(i) for i in self.infosystem_busroute_dualdirections]) if hasattr(self, 'infosystem_busroute_dualdirections') else '\n'.join([str(i) for i in self.infosystem_busroute_singledirection])
+        
 
     def add_ddu(self, RTNO:str = '',Outbound_dir:str = '',Inbound_dir:str = '',Outbound_price:float = 0.0,Inbound_price:float = 0.0,sectiontimes_Y:int = 0,sectiontimes_Z:int = 0) -> None:
         self.ddu.append(self.Busstop_DDU(RTNO,Outbound_dir,Inbound_dir,Outbound_price,Inbound_price,sectiontimes_Y,sectiontimes_Z))
