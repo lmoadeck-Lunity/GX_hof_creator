@@ -2,6 +2,11 @@ from string import Template
 from types import SimpleNamespace
 class ericcode:
     mapping = {'a': 11, 'b': 12, 'c':13,'d':21,'e':22,'f':23,'g':31,'h':32,'i':33,'j':41,'k':42,'l':43,'m':51,'n':52,'o':53,'p':61,'q':62,'r':63,'s':71,'t':72,'u':73,'v':81,'w':82,'x':83,'y':91,'z':92,'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9}
+    def retstr(self) -> str:
+        returnstring = ''.join(self.eric)
+        if len(returnstring) < 6:
+            returnstring = returnstring + '0'
+        return returnstring
     def __init__(self, code: str) -> None:
         self.eric = map(str,[self.mapping[c] for c in code.lower()])
     def __len__(self) -> int:
@@ -11,6 +16,9 @@ class ericcode:
         if len(returnstring) < 6:
             returnstring = returnstring + '0'
         return returnstring
+    def __int__(self) -> int:
+        return int(str(self.retstr()))
+
 
 class HOF:
     name = 'Default'
@@ -59,13 +67,17 @@ $pai_page3
 $pai_page2
 $pai_page1
 $RTID
-                                        .........................
+.........................
                                     ''')
             self._allexit = '_allexit' if allexit else ''
             self._eric = eric
             self._destination = destination
             self._busfull = busfull
             self._flip = flip
+            self._flup4 = flip[3] if len(flip) > 3 else ''
+            self._flup3 = flip[2] if len(flip) > 2 else ''
+            self._flup2 = flip[1] if len(flip) > 1 else ''
+            self._flup1 = flip[0] if len(flip) > 0 else ''
             self._RTID = RTID
         # def set_allexit(self, allexit: bool) -> None:
         #     self._allexit = '_allexit' if allexit else ''
@@ -107,6 +119,10 @@ $RTID
         @flip.setter
         def flip(self, value: list[str]) -> None:
             self._flip = value
+            self._flup4 = value[3] if len(value) > 3 else ''
+            self._flup3 = value[2] if len(value) > 2 else ''
+            self._flup2 = value[1] if len(value) > 1 else ''
+            self._flup1 = value[0] if len(value) > 0 else ''
         @property
         def allexit(self) -> str:
             return self._allexit
@@ -116,7 +132,7 @@ $RTID
         
         
         def __str__(self) -> str:
-            return self.template.substitute(allexit=self._allexit, eric=self._eric, destination=self._destination, busfull=self._busfull, flip=self._flip, RTID=self._RTID)
+            return self.template.substitute(allexit=self._allexit, eric=self._eric, destination=self._destination, busfull=self._busfull, pai_page4 = self._flup4, pai_page3 = self._flup3, pai_page2 = self._flup2,pai_page1 = self._flup1,RTID=self._RTID)
 
     class Busstop_Stopreporter:
         def __init__(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0) -> None:
@@ -366,6 +382,7 @@ $busstops
                     self.trip(route,dir1,route),
                     self.busstop_list(bustoplist1,route)
                     ]
+                    
         def __str__(self) -> str:
             return '\n'.join([str(i) for i in self.infosystem_busroute_dualdirections]) if hasattr(self, 'infosystem_busroute_dualdirections') else '\n'.join([str(i) for i in self.infosystem_busroute_singledirection])
         
@@ -376,10 +393,12 @@ $busstops
         self.stopreporter.append(self.Busstop_Stopreporter(name,EngDisplay,ChiSeconds,EngSeconds,Outbound_sectionfare,Inbound_sectionfare))
     def add_terminus(self,allexit:bool = False, eric: int = 0, destination: str = '', busfull: str = '', flip: list[str] = [], RTID: str = '') -> None:
         self.termini.append(self.Termini(allexit, eric, destination, busfull, flip, RTID))
-    def add_infosystem(self,eric:str =  '',Destination:str = '',RouteNo:str = '') -> None:
-        self.infosystem.append(self.Infosystem.trip(eric,Destination,RouteNo))
-    def add_busstop_list(self,bus_stops:list[str] = [],rtno:str = '') -> None:
-        self.infosystem.append(self.Infosystem.busstop_list(bus_stops,rtno))
+    # def add_infosystem(self,eric:str =  '',Destination:str = '',RouteNo:str = '') -> None:
+    #     self.infosystem.append(self.Infosystem.trip(eric,Destination,RouteNo))
+    # def add_busstop_list(self,bus_stops:list[str] = [],rtno:str = '') -> None:
+    #     self.infosystem.append(self.Infosystem.busstop_list(bus_stops,rtno))
+    def add_infosystem(self,single_or_dual_dir:bool,route:str='',dir1:str='',dir2:str='',bustoplist1:list[str]=[],bustoplist2:list[str]=[]) -> None:
+        self.infosystem.append(self.Infosystem(single_or_dual_dir,route,dir1,dir2,bustoplist1,bustoplist2))
     def showfullhof(self) -> str:
-        returnstring = '\n'.join([''.join(self.template.substitute(name = self.name,servicetrip = self.servicetrip)),'\n'.join(str(i) for i in self.ddu),'\n'.join((str(i) for i in self.stopreporter)),'\n'.join((str(i) for i in self.termini)),'\n'.join((str(i) for i in self.infosystem))])
+        returnstring = '\n'.join([''.join(self.template.substitute(name = self.name,servicetrip = self.servicetrip)),'\n'.join((str(i) for i in self.termini)),'\n'.join(str(i) for i in self.ddu),'\n'.join((str(i) for i in self.stopreporter)),'\n'.join((str(i) for i in self.infosystem))])
         return returnstring

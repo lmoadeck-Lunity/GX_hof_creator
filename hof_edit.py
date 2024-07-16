@@ -11,8 +11,9 @@
 
 import HOF
 hof = HOF.HOF('testing')
+
 hof.add_ddu('268C','Kwun Tong Ferry','Long Ping Station',20.1,20.1,1,2)
-
-
-a = hof.Infosystem(True,'268C','Kwun Tong Ferry','Long Ping Station')
-print(a)
+stops_268c = ['Long Ping Station', 'YOHO Mall II', 'YOHO Mall I','Tai Lam Tunnel BBI', 'Kwun Tong Ferry']
+hof.add_infosystem(True,'268C','Kwun Tong Ferry','Long Ping Station',stops_268c,stops_268c[::-1])
+hof.add_terminus(eric=int((HOF.ericcode('268CY'))),destination='Kwun Tong Ferry',flip=['268CY_1.png','268CY_2.png'],RTID='268C')
+print(hof.showfullhof())
