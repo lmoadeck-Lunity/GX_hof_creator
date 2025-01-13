@@ -181,8 +181,8 @@ $busstops
             self._EngDisplay = EngDisplay
             self._ChiSeconds = str(ChiSeconds).rjust(2,'0')
             self._EngSeconds = str(EngSeconds).rjust(2,'0')
-            self._Outbound_sectionfare = f"${Outbound_sectionfare:.1f}" if Outbound_sectionfare != 0.0 else name
-            self._Inbound_sectionfare = f"${Inbound_sectionfare:.1f}" if Inbound_sectionfare != 0.0 else name
+            self._Outbound_sectionfare = f"${Outbound_sectionfare:.1f}" if isinstance(Outbound_sectionfare,float) else name
+            self._Inbound_sectionfare = f"${Inbound_sectionfare:.1f}" if isinstance(Inbound_sectionfare,float) else name
             self._Autoskip = False
             self._pages = 1
             self._engscroll = self._EngDisplay.count('@') // 2
@@ -332,7 +332,7 @@ $busstops
         (infosystem_trip and infosystem_busstop_list needs to be in a pair for the correct format, and both needs to be in a pair for GPSHoilun to read the hof correctly)
         '''
         valid_infosystem = Template('''
-##################1st direction#############
+------------------1st direction-------------
 $trip1
 ////////////////////////////////////////////
 $stoplist1
@@ -397,6 +397,9 @@ $stoplist2
             @amount_of_stops.setter
             def amount_of_stops(self, value: int) -> None:
                 self._amount_of_stops = value
+            @property
+            def db_export(self) -> list:
+                return self._busstops
             def __str__(self) -> str:
                 return HOF_Hanover.busstop_list_template.substitute(amount_of_stops=self._amount_of_stops, rtno=self._rtno, busstops=self.busstops)
             def __repr__(self) -> list[int | str | list[str]]:
@@ -409,10 +412,15 @@ $stoplist2
             #route must be inputted as '289X', we will automaticllu add Y and Z at the end
             #single_or_dual_dir with True being dual direction and False being single direction
             self._single_or_dual_dir = single_or_dual_dir
+            print(route)
             self._trip1 = self.trip(f"{route}Y",dir1,route)
             self._trip2 = self.trip(f"{route}Z",dir2,route)
+            
             self._busstop_list1 = self.busstop_list(bustoplist1,route)
             self._busstop_list2 = self.busstop_list(bustoplist2,route)
+            self._db_export_bsl1 = self._busstop_list1.db_export
+            self._db_export_bsl2 = self._busstop_list2.db_export
+
         @property
         def single_or_dual_dir(self) -> bool:
             return self._single_or_dual_dir
@@ -465,7 +473,12 @@ $stoplist2
         @property
         def busstop_list2_class(self) -> busstop_list:
             return self._busstop_list2
-        
+        @property
+        def db_export_bsl1(self) -> list:
+            return self._db_export_bsl1
+        @property
+        def db_export_bsl2(self) -> list:
+            return self._db_export_bsl2
         def __str__(self) -> str:
             return self.valid_infosystem.substitute(trip1=self._trip1, stoplist1=self._busstop_list1, trip2=self._trip2, stoplist2=self._busstop_list2)
         
@@ -568,27 +581,59 @@ $stoplist2
                  dir1 text, dir2 text, bustoplist1 text, bustoplist2 text)''',
             'INSERT INTO infosystem VALUES (?,?,?,?,?,?)',
             [(i.single_or_dual_dir, i.route, i.direction1, i.direction2,
-              i.busstop_list1, i.busstop_list2) for i in self.infosystem]
+              str(i.db_export_bsl1), str(i.db_export_bsl2)) for i in self.infosystem]
         )
 
         print(f"Saved to hof_{hofname} folder")
     def load_from_db(self, hofname: str) -> None:
+        # busstop_ddu = sqlite3.connect(f'hof_{hofname}/busstop_ddu.db')
+        # busstop_stopreporter = sqlite3.connect(f'hof_{hofname}/busstop_stopreporter.db')
+        # terminus = sqlite3.connect(f'hof_{hofname}/terminus.db')
+        # infosystem = sqlite3.connect(f'hof_{hofname}/infosystem.db')
+        # c = busstop_ddu.cursor()
+        # c.execute('''SELECT * FROM busstop_ddu''')
+        # self.ddu = [self._create_ddu(dict(zip(self.ddu_expected_keys, i))) for i in c.fetchall()]
+        # c = busstop_stopreporter.cursor()
+        # c.execute('''SELECT * FROM busstop_stopreporter''')
+        # self.stopreporter = [self._create_stopreporter(dict(zip(self.stopreporter_expected_keys, i))) for i in c.fetchall()]
+        # c = terminus.cursor()
+        # c.execute('''SELECT * FROM terminus''')
+        # self.termini = [self._create_termini(dict(zip(self.termini_expected_keys, i))) for i in c.fetchall()]
+        # c = infosystem.cursor()
+        # c.execute('''SELECT * FROM infosystem''')
+        # self.infosystem = [self._create_infosystem(dict(zip(self.infosystem_expected_keys, i))) for i in c.fetchall()]
+        # busstop_ddu.close()
+        # busstop_stopreporter.close()
+        # terminus.close()
+        # infosystem.close()
+        # print(f"Loaded from hof_{hofname} folder")
         busstop_ddu = sqlite3.connect(f'hof_{hofname}/busstop_ddu.db')
         busstop_stopreporter = sqlite3.connect(f'hof_{hofname}/busstop_stopreporter.db')
         terminus = sqlite3.connect(f'hof_{hofname}/terminus.db')
         infosystem = sqlite3.connect(f'hof_{hofname}/infosystem.db')
         c = busstop_ddu.cursor()
         c.execute('''SELECT * FROM busstop_ddu''')
-        self.ddu = [self._create_ddu(dict(zip(self.ddu_expected_keys, i))) for i in c.fetchall()]
+        self.ddu = [self.Busstop_DDU(*i) for i in c.fetchall()]
         c = busstop_stopreporter.cursor()
         c.execute('''SELECT * FROM busstop_stopreporter''')
-        self.stopreporter = [self._create_stopreporter(dict(zip(self.stopreporter_expected_keys, i))) for i in c.fetchall()]
+        self.stopreporter = [self.Busstop_Stopreporter(*i) for i in c.fetchall()]
         c = terminus.cursor()
         c.execute('''SELECT * FROM terminus''')
-        self.termini = [self._create_termini(dict(zip(self.termini_expected_keys, i))) for i in c.fetchall()]
+        self.termini = [self.Termini(*i) for i in c.fetchall()]
         c = infosystem.cursor()
         c.execute('''SELECT * FROM infosystem''')
-        self.infosystem = [self._create_infosystem(dict(zip(self.infosystem_expected_keys, i))) for i in c.fetchall()]
+        ls = c.fetchall()
+        for index, i in enumerate(ls):
+            ls[index] = list(i)
+            ls[index][4] = ls[index][4][1:-1].replace("'","").split(', ')
+            ls[index][5] = ls[index][5][1:-1].replace("'","").split(', ')
+
+            # i[4] = i[4][1:-1].split(', ')
+            # i[5] = i[5][1:-1].split(', ')
+        # print(ls)
+        # exit()
+        self.infosystem = [self.Infosystem(*i) for i in ls]
+        # self.infosystem = [self.Infosystem(*i) for i in c.fetchall()]
         busstop_ddu.close()
         busstop_stopreporter.close()
         terminus.close()
@@ -596,55 +641,56 @@ $stoplist2
         print(f"Loaded from hof_{hofname} folder")
 
 
-    def _create_infosystem(self, item):
-        # print(item)
-        temp = self.Infosystem()
-        for k, v in item.items():
-            attr = k.lstrip('_')
-            print(attr,v)
 
-            if attr in ['single_or_dual_dir']:
-                # print(v,121)
-                setattr(temp, attr, v)
-            if attr == 'trip1':
-                # print(v,111)
-                temp.trip1_class.ericcode, temp.trip1_class.Destination, temp.trip1_class.routeno = v
-            if attr == 'trip2':
-                # print(v,222)
-                temp.trip2_class.ericcode, temp.trip2_class.Destination, temp.trip2_class.routeno = v
-            if attr in ['busstop_list1', 'busstop_list2']:
-                # print(v,333)
-                cls_attr = getattr(temp, f"{attr}_class")
-                cls_attr.amount_of_stops, cls_attr.rtno, cls_attr.busstops = v
-        return temp
+    # def _create_infosystem(self, item):
+    #     # print(item)
+    #     temp = self.Infosystem()
+    #     for k, v in item.items():
+    #         attr = k.lstrip('_')
+    #         print(attr,v)
 
-    def _create_termini(self, item):
-        temp = self.Termini()
-        for k, v in item.items():
-            if k != '_RTID':  # Skip _RTID
-                setattr(temp, k.lstrip('_'), str(v) if k == '_eric' else v)
-        return temp
+    #         if attr in ['single_or_dual_dir']:
+    #             # print(v,121)
+    #             setattr(temp, attr, v)
+    #         if attr == 'trip1':
+    #             # print(v,111)
+    #             temp.trip1_class.ericcode, temp.trip1_class.Destination, temp.trip1_class.routeno = v
+    #         if attr == 'trip2':
+    #             # print(v,222)
+    #             temp.trip2_class.ericcode, temp.trip2_class.Destination, temp.trip2_class.routeno = v
+    #         if attr in ['busstop_list1', 'busstop_list2']:
+    #             # print(v,333)
+    #             cls_attr = getattr(temp, f"{attr}_class")
+    #             cls_attr.amount_of_stops, cls_attr.rtno, cls_attr.busstops = v
+    #     return temp
 
-    def _create_ddu(self, item):
-        temp = self.Busstop_DDU()
-        for k, v in item.items():
-            attr = k.lstrip('_')
-            if attr in ['Inbound_price', 'Outbound_price']:
-                setattr(temp, attr, float(v[1:]))
-            else:
-                setattr(temp, attr, v)
-        return temp
+    # def _create_termini(self, item):
+    #     temp = self.Termini()
+    #     for k, v in item.items():
+    #         if k != '_RTID':  # Skip _RTID
+    #             setattr(temp, k.lstrip('_'), str(v) if k == '_eric' else v)
+    #     return temp
 
-    def _create_stopreporter(self, item):
-        temp = self.Busstop_Stopreporter()
-        for k, v in item.items():
-            attr = k.lstrip('_')
-            if attr in self.stopreporter_expected_keys:
-                if attr in ['Inbound_sectionfare', 'Outbound_sectionfare']:
-                    try:
-                        v = float(v[1:])
-                    except ValueError:
-                        v = 0.0
-                setattr(temp, attr, v)
-        return temp
+    # def _create_ddu(self, item):
+    #     temp = self.Busstop_DDU()
+    #     for k, v in item.items():
+    #         attr = k.lstrip('_')
+    #         if attr in ['Inbound_price', 'Outbound_price']:
+    #             setattr(temp, attr, float(v[1:]))
+    #         else:
+    #             setattr(temp, attr, v)
+    #     return temp
+
+    # def _create_stopreporter(self, item):
+    #     temp = self.Busstop_Stopreporter()
+    #     for k, v in item.items():
+    #         attr = k.lstrip('_')
+    #         if attr in self.stopreporter_expected_keys:
+    #             if attr in ['Inbound_sectionfare', 'Outbound_sectionfare']:
+    #                 try:
+    #                     v = float(v[1:])
+    #                 except ValueError:
+    #                     v = 0.0
+    #             setattr(temp, attr, v)
+    #     return temp
 
