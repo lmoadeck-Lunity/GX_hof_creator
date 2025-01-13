@@ -1,17 +1,7 @@
 from string import Template
 from types import GeneratorType
-import json
+import sqlite3
 
-class CustomEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Template):  # Assuming 'Template' is your custom class
-            return None  # Or however you wish to represent your object
-        # Let the base class default method raise the TypeError
-        if isinstance(obj,HOF_Hanover.Infosystem.trip):
-            return obj.__repr__()
-        if isinstance(obj,HOF_Hanover.Infosystem.busstop_list):
-            return obj.__repr__()
-        return json.JSONEncoder.default(self, obj)
         
 class ericcode:
     mapping = {'a': 11, 'b': 12, 'c':13,'d':21,'e':22,'f':23,'g':31,'h':32,'i':33,'j':41,'k':42,'l':43,'m':51,'n':52,'o':53,'p':61,'q':62,'r':63,'s':71,'t':72,'u':73,'v':81,'w':82,'x':83,'y':91,'z':92,'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9}
@@ -242,16 +232,16 @@ $busstops
             self._EngSeconds = str(value).rjust(2, '0')
 
         @property
-        def Outbound_sectionfare(self) -> float:
-            return float(self._Outbound_sectionfare.strip('$'))
+        def Outbound_sectionfare(self) -> float | str:
+            return float(self._Outbound_sectionfare.strip('$')) if isinstance(self._Outbound_sectionfare, float) else self._name
 
         @Outbound_sectionfare.setter
         def Outbound_sectionfare(self, value: float) -> None:
             self._Outbound_sectionfare = f"${value:.1f}" if value != 0.0 else self._name
 
         @property
-        def Inbound_sectionfare(self) -> float:
-            return float(self._Inbound_sectionfare.strip('$'))
+        def Inbound_sectionfare(self) -> float | str:
+            return float(self._Inbound_sectionfare.strip('$')) if isinstance(self._Inbound_sectionfare, float) else self._name
 
         @Inbound_sectionfare.setter
         def Inbound_sectionfare(self, value: float) -> None:
@@ -518,19 +508,94 @@ $stoplist2
         with open(filename, 'w') as f:
             f.write(self.showfullhof())
             print(f"Exported to {filename}, all comments have been destroyed.")
-    def save_to_json(self, filename: str) -> None:
-        import json
-        with open(filename, 'w') as f:
-            json.dump({'name': self.name, 'servicetrip': self.servicetrip, 'ddu': [vars(i) for i in self.ddu], 'termini': [vars(i) for i in self.termini],'stopreporter': [vars(i) for i in self.stopreporter], 'infosystem': [vars(i) for i in self.infosystem]}, f, indent=2, cls=CustomEncoder)
-    def import_from_json(self, filename: str) -> None:
-        with open(filename, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            self.name = data['name']
-            self.servicetrip = data['servicetrip']
-            self.infosystem = [self._create_infosystem(item) for item in data['infosystem']]
-            self.termini = [self._create_termini(item) for item in data['termini']]
-            self.ddu = [self._create_ddu(item) for item in data['ddu']]
-            self.stopreporter = [self._create_stopreporter(item) for item in data['stopreporter']]
+    def save_to_db(self, hofname: str) -> None:
+        import os
+        import sqlite3
+
+        os.makedirs(f'hof_{hofname}', exist_ok=True)
+
+        def _insert_data(db_path, drop_sql, create_sql, insert_sql, data):
+            with sqlite3.connect(db_path) as conn:
+                c = conn.cursor()
+                c.execute(drop_sql)
+                c.execute(create_sql)
+                c.executemany(insert_sql, data)
+                conn.commit()
+
+        _insert_data(
+            f'hof_{hofname}/busstop_ddu.db',
+            'DROP TABLE IF EXISTS busstop_ddu',
+            '''CREATE TABLE busstop_ddu (
+                 RTNO text, Outbound_dir text, Inbound_dir text,
+                 Outbound_price real, Inbound_price real,
+                 sectiontimes_Y integer, sectiontimes_Z integer)''',
+            'INSERT INTO busstop_ddu VALUES (?,?,?,?,?,?,?)',
+            [(i.RTNO, i.Outbound_dir, i.Inbound_dir, i.Outbound_price,
+              i.Inbound_price, i.sectiontimes_Y, i.sectiontimes_Z) for i in self.ddu]
+        )
+
+        _insert_data(
+            f'hof_{hofname}/busstop_stopreporter.db',
+            'DROP TABLE IF EXISTS busstop_stopreporter',
+            '''CREATE TABLE busstop_stopreporter (
+                 name text, EngDisplay text, ChiSeconds integer,
+                 EngSeconds integer, Outbound_sectionfare real,
+                 Inbound_sectionfare real, comment text)''',
+            'INSERT INTO busstop_stopreporter VALUES (?,?,?,?,?,?,?)',
+            [(i.name, i.EngDisplay, i.ChiSeconds, i.EngSeconds, i.Outbound_sectionfare,
+              i.Inbound_sectionfare, i.comment) for i in self.stopreporter]
+        )
+
+        _insert_data(
+            f'hof_{hofname}/terminus.db',
+            'DROP TABLE IF EXISTS terminus',
+            '''CREATE TABLE terminus (
+                 allexit BOOL, eric text, destination text, busfull text,
+                 flip4 text, flip3 text, flip2 text, flip1 text, RTID text)''',
+            'INSERT INTO terminus VALUES (?,?,?,?,?,?,?,?,?)',
+            [(i.allexit, i.eric, i.destination, i.busfull,
+              i.flip[3] if len(i.flip) > 3 else '',
+              i.flip[2] if len(i.flip) > 2 else '',
+              i.flip[1] if len(i.flip) > 1 else '',
+              i.flip[0] if len(i.flip) > 0 else '', i.RTID) for i in self.termini]
+        )
+
+        _insert_data(
+            f'hof_{hofname}/infosystem.db',
+            'DROP TABLE IF EXISTS infosystem',
+            '''CREATE TABLE infosystem (
+                 single_or_dual_dir BOOL, route text,
+                 dir1 text, dir2 text, bustoplist1 text, bustoplist2 text)''',
+            'INSERT INTO infosystem VALUES (?,?,?,?,?,?)',
+            [(i.single_or_dual_dir, i.route, i.direction1, i.direction2,
+              i.busstop_list1, i.busstop_list2) for i in self.infosystem]
+        )
+
+        print(f"Saved to hof_{hofname} folder")
+    def load_from_db(self, hofname: str) -> None:
+        busstop_ddu = sqlite3.connect(f'hof_{hofname}/busstop_ddu.db')
+        busstop_stopreporter = sqlite3.connect(f'hof_{hofname}/busstop_stopreporter.db')
+        terminus = sqlite3.connect(f'hof_{hofname}/terminus.db')
+        infosystem = sqlite3.connect(f'hof_{hofname}/infosystem.db')
+        c = busstop_ddu.cursor()
+        c.execute('''SELECT * FROM busstop_ddu''')
+        self.ddu = [self._create_ddu(dict(zip(self.ddu_expected_keys, i))) for i in c.fetchall()]
+        c = busstop_stopreporter.cursor()
+        c.execute('''SELECT * FROM busstop_stopreporter''')
+        self.stopreporter = [self._create_stopreporter(dict(zip(self.stopreporter_expected_keys, i))) for i in c.fetchall()]
+        c = terminus.cursor()
+        c.execute('''SELECT * FROM terminus''')
+        self.termini = [self._create_termini(dict(zip(self.termini_expected_keys, i))) for i in c.fetchall()]
+        c = infosystem.cursor()
+        c.execute('''SELECT * FROM infosystem''')
+        self.infosystem = [self._create_infosystem(dict(zip(self.infosystem_expected_keys, i))) for i in c.fetchall()]
+        busstop_ddu.close()
+        busstop_stopreporter.close()
+        terminus.close()
+        infosystem.close()
+        print(f"Loaded from hof_{hofname} folder")
+
+
     def _create_infosystem(self, item):
         # print(item)
         temp = self.Infosystem()
