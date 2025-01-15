@@ -120,17 +120,6 @@ $busstops
             self._flup2 = flip[1] if len(flip) > 1 else ''
             self._flup1 = flip[0] if len(flip) > 0 else ''
             self._RTID = RTID
-        # def set_allexit(self, allexit: bool) -> None:
-        #     self._allexit = '_allexit' if allexit else ''
-        # def set_eric(self, eric: str) -> None:
-        #     self._eric = str(ericcode(eric))
-        #     self._RTID = eric
-        # def set_destination(self, destination: str) -> None:
-        #     self._destination = destination
-        # def set_busfull(self, busfull: str) -> None:
-        #     self._busfull = busfull
-        # def set_flip(self, flip: list[str]) -> None:
-        #     self._flip = flip
 
         @property
         def eric(self) -> str:
@@ -412,7 +401,6 @@ $stoplist2
             #route must be inputted as '289X', we will automaticllu add Y and Z at the end
             #single_or_dual_dir with True being dual direction and False being single direction
             self._single_or_dual_dir = single_or_dual_dir
-            print(route)
             self._trip1 = self.trip(f"{route}Y",dir1,route)
             self._trip2 = self.trip(f"{route}Z",dir2,route)
             
@@ -523,174 +511,39 @@ $stoplist2
             print(f"Exported to {filename}, all comments have been destroyed.")
     def save_to_db(self, hofname: str) -> None:
         import os
-        import sqlite3
-
         os.makedirs(f'hof_{hofname}', exist_ok=True)
+        database_file = sqlite3.connect(f'hof_{hofname}/{hofname}.db')
+        c = database_file.cursor()
+        def _execquery(classname: str, expected_keys: list[str], data: list) -> None:
+            c.execute(f'''CREATE TABLE IF NOT EXISTS {classname}''')
+            c.execute(f'''DELETE FROM {classname}''')
+            c.executemany(f'''INSERT INTO {classname} VALUES ({','.join(['?' for _ in expected_keys])})''', data)
+        exec_list = ["ddu", "stopreporter", "termini", "infosystem"]
+        for i in exec_list:
+            _execquery(i, getattr(self, f'{i}_expected_keys'), [list(vars(j).values()) for j in getattr(self, i)])
 
-        def _insert_data(db_path, drop_sql, create_sql, insert_sql, data):
-            with sqlite3.connect(db_path) as conn:
-                c = conn.cursor()
-                c.execute(drop_sql)
-                c.execute(create_sql)
-                c.executemany(insert_sql, data)
-                conn.commit()
-
-        _insert_data(
-            f'hof_{hofname}/busstop_ddu.db',
-            'DROP TABLE IF EXISTS busstop_ddu',
-            '''CREATE TABLE busstop_ddu (
-                 RTNO text, Outbound_dir text, Inbound_dir text,
-                 Outbound_price real, Inbound_price real,
-                 sectiontimes_Y integer, sectiontimes_Z integer)''',
-            'INSERT INTO busstop_ddu VALUES (?,?,?,?,?,?,?)',
-            [(i.RTNO, i.Outbound_dir, i.Inbound_dir, i.Outbound_price,
-              i.Inbound_price, i.sectiontimes_Y, i.sectiontimes_Z) for i in self.ddu]
-        )
-
-        _insert_data(
-            f'hof_{hofname}/busstop_stopreporter.db',
-            'DROP TABLE IF EXISTS busstop_stopreporter',
-            '''CREATE TABLE busstop_stopreporter (
-                 name text, EngDisplay text, ChiSeconds integer,
-                 EngSeconds integer, Outbound_sectionfare real,
-                 Inbound_sectionfare real, comment text)''',
-            'INSERT INTO busstop_stopreporter VALUES (?,?,?,?,?,?,?)',
-            [(i.name, i.EngDisplay, i.ChiSeconds, i.EngSeconds, i.Outbound_sectionfare,
-              i.Inbound_sectionfare, i.comment) for i in self.stopreporter]
-        )
-
-        _insert_data(
-            f'hof_{hofname}/terminus.db',
-            'DROP TABLE IF EXISTS terminus',
-            '''CREATE TABLE terminus (
-                 allexit BOOL, eric text, destination text, busfull text,
-                 flip4 text, flip3 text, flip2 text, flip1 text, RTID text)''',
-            'INSERT INTO terminus VALUES (?,?,?,?,?,?,?,?,?)',
-            [(i.allexit, i.eric, i.destination, i.busfull,
-              i.flip[3] if len(i.flip) > 3 else '',
-              i.flip[2] if len(i.flip) > 2 else '',
-              i.flip[1] if len(i.flip) > 1 else '',
-              i.flip[0] if len(i.flip) > 0 else '', i.RTID) for i in self.termini]
-        )
-
-        _insert_data(
-            f'hof_{hofname}/infosystem.db',
-            'DROP TABLE IF EXISTS infosystem',
-            '''CREATE TABLE infosystem (
-                 single_or_dual_dir BOOL, route text,
-                 dir1 text, dir2 text, bustoplist1 text, bustoplist2 text)''',
-            'INSERT INTO infosystem VALUES (?,?,?,?,?,?)',
-            [(i.single_or_dual_dir, i.route, i.direction1, i.direction2,
-              str(i.db_export_bsl1), str(i.db_export_bsl2)) for i in self.infosystem]
-        )
+        database_file.commit()
+        database_file.close()
 
         print(f"Saved to hof_{hofname} folder")
     def load_from_db(self, hofname: str) -> None:
-        # busstop_ddu = sqlite3.connect(f'hof_{hofname}/busstop_ddu.db')
-        # busstop_stopreporter = sqlite3.connect(f'hof_{hofname}/busstop_stopreporter.db')
-        # terminus = sqlite3.connect(f'hof_{hofname}/terminus.db')
-        # infosystem = sqlite3.connect(f'hof_{hofname}/infosystem.db')
-        # c = busstop_ddu.cursor()
-        # c.execute('''SELECT * FROM busstop_ddu''')
-        # self.ddu = [self._create_ddu(dict(zip(self.ddu_expected_keys, i))) for i in c.fetchall()]
-        # c = busstop_stopreporter.cursor()
-        # c.execute('''SELECT * FROM busstop_stopreporter''')
-        # self.stopreporter = [self._create_stopreporter(dict(zip(self.stopreporter_expected_keys, i))) for i in c.fetchall()]
-        # c = terminus.cursor()
-        # c.execute('''SELECT * FROM terminus''')
-        # self.termini = [self._create_termini(dict(zip(self.termini_expected_keys, i))) for i in c.fetchall()]
-        # c = infosystem.cursor()
-        # c.execute('''SELECT * FROM infosystem''')
-        # self.infosystem = [self._create_infosystem(dict(zip(self.infosystem_expected_keys, i))) for i in c.fetchall()]
-        # busstop_ddu.close()
-        # busstop_stopreporter.close()
-        # terminus.close()
-        # infosystem.close()
-        # print(f"Loaded from hof_{hofname} folder")
-        busstop_ddu = sqlite3.connect(f'hof_{hofname}/busstop_ddu.db')
-        busstop_stopreporter = sqlite3.connect(f'hof_{hofname}/busstop_stopreporter.db')
-        terminus = sqlite3.connect(f'hof_{hofname}/terminus.db')
-        infosystem = sqlite3.connect(f'hof_{hofname}/infosystem.db')
-        c = busstop_ddu.cursor()
-        c.execute('''SELECT * FROM busstop_ddu''')
+
+
+        database_file = sqlite3.connect(f'hof_{hofname}/{hofname}.db')
+        c = database_file.cursor()
+        c.execute(f'''SELECT * FROM ddu''')
         self.ddu = [self.Busstop_DDU(*i) for i in c.fetchall()]
-        c = busstop_stopreporter.cursor()
-        c.execute('''SELECT * FROM busstop_stopreporter''')
+        c.execute(f'''SELECT * FROM stopreporter''')
         self.stopreporter = [self.Busstop_Stopreporter(*i) for i in c.fetchall()]
-        c = terminus.cursor()
-        c.execute('''SELECT * FROM terminus''')
+        c.execute(f'''SELECT * FROM termini''')
         self.termini = [self.Termini(*i) for i in c.fetchall()]
-        c = infosystem.cursor()
-        c.execute('''SELECT * FROM infosystem''')
+        c.execute(f'''SELECT * FROM infosystem''')
         ls = c.fetchall()
         for index, i in enumerate(ls):
             ls[index] = list(i)
             ls[index][4] = ls[index][4][1:-1].replace("'","").split(', ')
             ls[index][5] = ls[index][5][1:-1].replace("'","").split(', ')
-
-            # i[4] = i[4][1:-1].split(', ')
-            # i[5] = i[5][1:-1].split(', ')
-        # print(ls)
-        # exit()
         self.infosystem = [self.Infosystem(*i) for i in ls]
-        # self.infosystem = [self.Infosystem(*i) for i in c.fetchall()]
-        busstop_ddu.close()
-        busstop_stopreporter.close()
-        terminus.close()
-        infosystem.close()
+        database_file.close()
         print(f"Loaded from hof_{hofname} folder")
-
-
-
-    # def _create_infosystem(self, item):
-    #     # print(item)
-    #     temp = self.Infosystem()
-    #     for k, v in item.items():
-    #         attr = k.lstrip('_')
-    #         print(attr,v)
-
-    #         if attr in ['single_or_dual_dir']:
-    #             # print(v,121)
-    #             setattr(temp, attr, v)
-    #         if attr == 'trip1':
-    #             # print(v,111)
-    #             temp.trip1_class.ericcode, temp.trip1_class.Destination, temp.trip1_class.routeno = v
-    #         if attr == 'trip2':
-    #             # print(v,222)
-    #             temp.trip2_class.ericcode, temp.trip2_class.Destination, temp.trip2_class.routeno = v
-    #         if attr in ['busstop_list1', 'busstop_list2']:
-    #             # print(v,333)
-    #             cls_attr = getattr(temp, f"{attr}_class")
-    #             cls_attr.amount_of_stops, cls_attr.rtno, cls_attr.busstops = v
-    #     return temp
-
-    # def _create_termini(self, item):
-    #     temp = self.Termini()
-    #     for k, v in item.items():
-    #         if k != '_RTID':  # Skip _RTID
-    #             setattr(temp, k.lstrip('_'), str(v) if k == '_eric' else v)
-    #     return temp
-
-    # def _create_ddu(self, item):
-    #     temp = self.Busstop_DDU()
-    #     for k, v in item.items():
-    #         attr = k.lstrip('_')
-    #         if attr in ['Inbound_price', 'Outbound_price']:
-    #             setattr(temp, attr, float(v[1:]))
-    #         else:
-    #             setattr(temp, attr, v)
-    #     return temp
-
-    # def _create_stopreporter(self, item):
-    #     temp = self.Busstop_Stopreporter()
-    #     for k, v in item.items():
-    #         attr = k.lstrip('_')
-    #         if attr in self.stopreporter_expected_keys:
-    #             if attr in ['Inbound_sectionfare', 'Outbound_sectionfare']:
-    #                 try:
-    #                     v = float(v[1:])
-    #                 except ValueError:
-    #                     v = 0.0
-    #             setattr(temp, attr, v)
-    #     return temp
 
