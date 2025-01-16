@@ -119,7 +119,7 @@ $busstops
         self.servicetrip = servicetrip
 
 
-    class Termini():
+    class Termini:
         def __init__(self,allexit:bool = False, eric: str = "", destination: str = '', busfull: str = '', flip: list[str] = [], RTID: str = '') -> None: #flip is a list of strings, eric will be inputted as '289XZ' and converted to 2899192
             self._allexit = '_allexit' if allexit else ''
             self._eric = eric
@@ -277,8 +277,8 @@ $busstops
             self._RTNO = RTNO
             self._Outbound_dir = Outbound_dir
             self._Inbound_dir = Inbound_dir
-            self._Outbound_price = f"${Outbound_price:.1f}"
-            self._Inbound_price = f"${Inbound_price:.1f}" 
+            self._Outbound_price = f"${float(Outbound_price):.1f}" 
+            self._Inbound_price = f"${float(Inbound_price):.1f}" 
             self._sectiontimes_Y = sectiontimes_Y
             self._sectiontimes_Z = sectiontimes_Z
         @property
@@ -545,9 +545,9 @@ $stoplist2
         c.execute('DELETE FROM infosystem')
         # for i in self.infosystem:
             # print(i.busstop_list2_class.db_export)
-        for i in self.stopreporter:
-            if i.name[:9] == "_DingDong":
-                print(i._Inbound_sectionfare, i._Outbound_sectionfare,"|",i.Inbound_sectionfare, i.Outbound_sectionfare)
+        # for i in self.stopreporter:
+            # if i.name[:9] == "_DingDong":
+                # print(i._Inbound_sectionfare, i._Outbound_sectionfare,"|",i.Inbound_sectionfare, i.Outbound_sectionfare)
         c.executemany('INSERT INTO ddu VALUES (?,?,?,?,?,?,?)', [(i.RTNO, i.Outbound_dir, i.Inbound_dir, i.Outbound_price, i.Inbound_price, i.sectiontimes_Y, i.sectiontimes_Z) for i in self.ddu])
         c.executemany('INSERT INTO stopreporter VALUES (?,?,?,?,?,?,?)', [(i.name, i.EngDisplay, i.ChiSeconds, i.EngSeconds, i.Outbound_sectionfare, i.Inbound_sectionfare, i.comment) for i in self.stopreporter])
         c.executemany('INSERT INTO termini VALUES (?,?,?,?,?,?,?,?,?)', [(i.allexit, i.eric, i.destination, i.busfull, i.flip[3] if len(i.flip) > 3 else '', i.flip[2] if len(i.flip) > 2 else '', i.flip[1] if len(i.flip) > 1 else '', i.flip[0] if len(i.flip) > 0 else '', i.RTID) for i in self.termini])
@@ -564,11 +564,45 @@ $stoplist2
         database_file = sqlite3.connect(f'hof_{hofname}/{hofname}.db')
         c = database_file.cursor()
         c.execute(f'''SELECT * FROM ddu''')
-        self.ddu = [self.Busstop_DDU(*i) for i in c.fetchall()]
+        # self.ddu = [self.Busstop_DDU(*i) for i in c.fetchall()]
+        ls = c.fetchall()
+        for index, i in enumerate(ls):
+            ls[index] = list(i)
+            ls[index][3] = f"{float(ls[index][3]):.1f}" if ls[index][3].replace(".","").isnumeric() else -1.0
+            ls[index][4] = f"{float(ls[index][4]):.1f}" if ls[index][4].replace(".","").isnumeric() else -1.0
+            # print(ls[index])
+        self.ddu = [self.Busstop_DDU(*i) for i in ls]
         c.execute(f'''SELECT * FROM stopreporter''')
         self.stopreporter = [self.Busstop_Stopreporter(*i) for i in c.fetchall()]
+        # for i in c.fetchall():
+
         c.execute(f'''SELECT * FROM termini''')
-        self.termini = [self.Termini(*i) for i in c.fetchall()]
+        
+        ls = c.fetchall()
+        
+        for index, i in enumerate(ls):
+            # ls[index] = list(i)
+            # ls[index][0] = True if ls[index][0] == "_allexit" else False
+            # for i in ls[index][4:8]:
+            #     if i != '':
+            #         flips.append(i)
+            # print(ls[index],i)
+            flips = []
+            newls = []
+            newls.append(True if ls[index][0] == "_allexit" else False)
+            newls.append(ls[index][1])
+            newls.append(ls[index][2])
+            newls.append(ls[index][3])
+            for i in ls[index][4:8]:
+                if i != '':
+                    flips.append(i)
+            newls.append(flips)
+            newls.append(ls[index][8])
+            # print(newls)
+            self.add_terminus(*newls)
+
+
+                                
         c.execute(f'''SELECT * FROM infosystem''')
         ls = c.fetchall()
         for index, i in enumerate(ls):
@@ -593,10 +627,19 @@ $stoplist2
                 hof_entry.servicetrip = lines[i + 1]
                 i += 2
             elif line == "[addterminus]":
-                param = lines[i].replace("[addterminus]", "").strip()
-                is_allexit = param.endswith("_allexit")
+                # param = lines[i].replace("[addterminus]", "").strip()
                 hof_entry.add_terminus(
-                    is_allexit,
+                    False,
+                    lines[i + 1],
+                    lines[i + 2],
+                    lines[i + 3],
+                    lines[i + 4 : i + 8][::-1],
+                    lines[i + 8]
+                )
+                i += 9
+            elif line == "[addterminus_allexit]":
+                hof_entry.add_terminus(
+                    True,
                     lines[i + 1],
                     lines[i + 2],
                     lines[i + 3],
@@ -634,18 +677,18 @@ $stoplist2
                     i += 7
                 else:
                     # parse DDU
-                    bay_number = int(lines[i + 2][-1])
-                    stop_number = int(lines[i + 3][-1])
+                    sectiontimes_Y = int(lines[i + 2][-1])
+                    sectiontimes_Z = int(lines[i + 3][-1])
                     inbound_price = float(lines[i + 4].lstrip('$')) if lines[i + 4].startswith('$') else 0.0
                     outbound_price = float(lines[i + 5].lstrip('$')) if lines[i + 5].startswith('$') else 0.0
                     hof_entry.add_ddu(
                         stop_name,
-                        lines[i + 2],
-                        lines[i + 3],
+                        lines[i + 2][:-1].strip(),
+                        lines[i + 3][:-1].strip(),
                         inbound_price,
                         outbound_price,
-                        bay_number,
-                        stop_number
+                        sectiontimes_Y,
+                        sectiontimes_Z
                     )
                     i += 6
                 
