@@ -37,10 +37,21 @@ class HOF_Hanover:
     stopreporter : list['Busstop_Stopreporter'] = []
     termini : list['Termini'] = []
     infosystem : list['Infosystem'] = []
-    ddu_expected_keys = ['RTNO','Outbound_dir','Inbound_dir','Outbound_price','Inbound_price','sectiontimes_Y','sectiontimes_Z']
-    stopreporter_expected_keys = ['name','EngDisplay','ChiSeconds','EngSeconds','Outbound_sectionfare','Inbound_sectionfare','comment']
-    termini_expected_keys = ['allexit','eric','destination','busfull','flip','RTID']
-    infosystem_expected_keys = ['single_or_dual_dir','route','dir1','dir2','bustoplist1','bustoplist2']
+    ddu_expected_keys_set = {'RTNO', 'Outbound_dir', 'Inbound_dir', 'Outbound_price', 'Inbound_price', 'sectiontimes_Y', 'sectiontimes_Z'}
+    # ddu_exp_k_datatypes = [str,str,str,float,float,int,int]
+    ddu_exp_k_datatypes = ["TEXT","TEXT","TEXT","REAL","REAL","INTEGER","INTEGER"]
+    
+    stopreporter_expected_keys_set = {'name', 'EngDisplay', 'ChiSeconds', 'EngSeconds', 'Outbound_sectionfare', 'Inbound_sectionfare', 'comment'}
+    # stopreporter_exp_k_datatypes = [str,str,int,int,float,float,str]
+    stopreporter_exp_k_datatypes = ["TEXT","TEXT","INTEGER","INTEGER","REAL","REAL","TEXT"]
+    
+    termini_expected_keys_set = {'allexit', 'eric', 'destination', 'busfull', 'flip', 'RTID'}
+    # termini_exp_k_datatypes = [bool,str,str,str,str,str]
+    termini_exp_k_datatypes = ["BOOL","TEXT","TEXT","TEXT","TEXT","TEXT"]
+    
+    infosystem_expected_keys_set = {'single_or_dual_dir', 'route', 'dir1', 'dir2', 'bustoplist1', 'bustoplist2'}
+    # infosystem_exp_k_datatypes = [bool,str,str,str,str,str]
+    infosystem_exp_k_datatypes = ["BOOL","TEXT","TEXT","TEXT","TEXT","TEXT"]
     header_template = Template('''------------------------------------------
 Created with Hof Creator for GX7767 Hoilun
 https://github.com/FreeHK-Lunity/GX_hof_creator/
@@ -109,7 +120,7 @@ $busstops
 
 
     class Termini():
-        def __init__(self,allexit:bool = False, eric: int = 0, destination: str = '', busfull: str = '', flip: list[str] = [], RTID: str = '') -> None: #flip is a list of strings, eric will be inputted as '289XZ' and converted to 2899192
+        def __init__(self,allexit:bool = False, eric: str = "", destination: str = '', busfull: str = '', flip: list[str] = [], RTID: str = '') -> None: #flip is a list of strings, eric will be inputted as '289XZ' and converted to 2899192
             self._allexit = '_allexit' if allexit else ''
             self._eric = eric
             self._destination = destination
@@ -170,8 +181,8 @@ $busstops
             self._EngDisplay = EngDisplay
             self._ChiSeconds = str(ChiSeconds).rjust(2,'0')
             self._EngSeconds = str(EngSeconds).rjust(2,'0')
-            self._Outbound_sectionfare = f"${Outbound_sectionfare:.1f}" if isinstance(Outbound_sectionfare,float) else name
-            self._Inbound_sectionfare = f"${Inbound_sectionfare:.1f}" if isinstance(Inbound_sectionfare,float) else name
+            self._Outbound_sectionfare = f"${Outbound_sectionfare:.1f}" if isinstance(Outbound_sectionfare,float) and Outbound_sectionfare != -1.0 else name
+            self._Inbound_sectionfare = f"${Inbound_sectionfare:.1f}" if isinstance(Inbound_sectionfare,float) and Inbound_sectionfare != -1.0 else name
             self._Autoskip = False
             self._pages = 1
             self._engscroll = self._EngDisplay.count('@') // 2
@@ -222,19 +233,19 @@ $busstops
 
         @property
         def Outbound_sectionfare(self) -> float | str:
-            return float(self._Outbound_sectionfare.strip('$')) if isinstance(self._Outbound_sectionfare, float) else self._name
+            return float(self._Outbound_sectionfare.strip('$')) if self._Outbound_sectionfare.lstrip("$").replace(".","").isnumeric() else self._name
 
         @Outbound_sectionfare.setter
         def Outbound_sectionfare(self, value: float) -> None:
-            self._Outbound_sectionfare = f"${value:.1f}" if value != 0.0 else self._name
+            self._Outbound_sectionfare = f"${value:.1f}" if value != -1.0 else self._name
 
         @property
         def Inbound_sectionfare(self) -> float | str:
-            return float(self._Inbound_sectionfare.strip('$')) if isinstance(self._Inbound_sectionfare, float) else self._name
+            return float(self._Inbound_sectionfare.strip('$')) if self._Inbound_sectionfare.lstrip("$").replace(".","").isnumeric() else self._name
 
         @Inbound_sectionfare.setter
         def Inbound_sectionfare(self, value: float) -> None:
-            self._Inbound_sectionfare = f"${value:.1f}" if value != 0.0 else self._name
+            self._Inbound_sectionfare = f"${value:.1f}" if value != -1.0 else self._name
         def __str__(self) -> str:
             return HOF_Hanover.stopreporter_template.substitute(name=self._name, EngDisplay=self._EngDisplay, ChiSeconds=self._ChiSeconds, EngSeconds=self._EngSeconds, Outbound_sectionfare=self._Outbound_sectionfare, Inbound_sectionfare=self._Inbound_sectionfare,comment=self._comment)
         
@@ -267,7 +278,7 @@ $busstops
             self._Outbound_dir = Outbound_dir
             self._Inbound_dir = Inbound_dir
             self._Outbound_price = f"${Outbound_price:.1f}"
-            self._Inbound_price = f"${Inbound_price:.1f}"
+            self._Inbound_price = f"${Inbound_price:.1f}" 
             self._sectiontimes_Y = sectiontimes_Y
             self._sectiontimes_Z = sectiontimes_Z
         @property
@@ -490,11 +501,11 @@ $stoplist2
 
         return flag
     
-    def add_ddu(self, RTNO:str = '',Outbound_dir:str = '',Inbound_dir:str = '',Outbound_price:float = 0.0,Inbound_price:float = 0.0,sectiontimes_Y:int = 0,sectiontimes_Z:int = 0) -> None:
+    def add_ddu(self, RTNO:str = '',Outbound_dir:str = '',Inbound_dir:str = '',Outbound_price:float = -1.0,Inbound_price:float = -1.0,sectiontimes_Y:int = 0,sectiontimes_Z:int = 0) -> None:
         self.ddu.append(self.Busstop_DDU(RTNO,Outbound_dir,Inbound_dir,Outbound_price,Inbound_price,sectiontimes_Y,sectiontimes_Z))
     def add_stopreporter(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0) -> None:
         self.stopreporter.append(self.Busstop_Stopreporter(name,EngDisplay,ChiSeconds,EngSeconds,Outbound_sectionfare,Inbound_sectionfare))
-    def add_terminus(self,allexit:bool = False, eric: int = 0, destination: str = '', busfull: str = '', flip: list[str] = [], RTID: str = '') -> None:
+    def add_terminus(self,allexit:bool = False, eric: str = '', destination: str = '', busfull: str = '', flip: list[str] = [], RTID: str = '') -> None:
         self.termini.append(self.Termini(allexit, eric, destination, busfull, flip, RTID))
     # def add_infosystem(self,eric:str =  '',Destination:str = '',RouteNo:str = '') -> None:
     #     self.infosystem.append(self.Infosystem.trip(eric,Destination,RouteNo))
@@ -514,18 +525,39 @@ $stoplist2
         os.makedirs(f'hof_{hofname}', exist_ok=True)
         database_file = sqlite3.connect(f'hof_{hofname}/{hofname}.db')
         c = database_file.cursor()
-        def _execquery(classname: str, expected_keys: list[str], data: list) -> None:
-            c.execute(f'''CREATE TABLE IF NOT EXISTS {classname}''')
-            c.execute(f'''DELETE FROM {classname}''')
-            c.executemany(f'''INSERT INTO {classname} VALUES ({','.join(['?' for _ in expected_keys])})''', data)
-        exec_list = ["ddu", "stopreporter", "termini", "infosystem"]
-        for i in exec_list:
-            _execquery(i, getattr(self, f'{i}_expected_keys'), [list(vars(j).values()) for j in getattr(self, i)])
+        c.execute(f'''CREATE TABLE IF NOT EXISTS ddu (
+                RTNO TEXT, Outbound_dir TEXT, Inbound_dir TEXT,
+                Outbound_price REAL, Inbound_price REAL,
+                sectiontimes_Y INTEGER, sectiontimes_Z INTEGER)''')
+        c.execute(f'''CREATE TABLE IF NOT EXISTS stopreporter (
+                name TEXT, EngDisplay TEXT, ChiSeconds INTEGER,
+                EngSeconds INTEGER, Outbound_sectionfare REAL,
+                Inbound_sectionfare REAL, comment TEXT)''')
+        c.execute(f'''CREATE TABLE IF NOT EXISTS termini (
+                allexit BOOL, eric TEXT, destination TEXT, busfull TEXT,
+                flip4 TEXT, flip3 TEXT, flip2 TEXT, flip1 TEXT, RTID TEXT)''')
+        c.execute(f'''CREATE TABLE IF NOT EXISTS infosystem (
+                single_or_dual_dir BOOL, route TEXT,
+                dir1 TEXT, dir2 TEXT, bustoplist1 TEXT, bustoplist2 TEXT)''')
+        c.execute('DELETE FROM ddu')
+        c.execute('DELETE FROM stopreporter')
+        c.execute('DELETE FROM termini')
+        c.execute('DELETE FROM infosystem')
+        # for i in self.infosystem:
+            # print(i.busstop_list2_class.db_export)
+        for i in self.stopreporter:
+            if i.name[:9] == "_DingDong":
+                print(i._Inbound_sectionfare, i._Outbound_sectionfare,"|",i.Inbound_sectionfare, i.Outbound_sectionfare)
+        c.executemany('INSERT INTO ddu VALUES (?,?,?,?,?,?,?)', [(i.RTNO, i.Outbound_dir, i.Inbound_dir, i.Outbound_price, i.Inbound_price, i.sectiontimes_Y, i.sectiontimes_Z) for i in self.ddu])
+        c.executemany('INSERT INTO stopreporter VALUES (?,?,?,?,?,?,?)', [(i.name, i.EngDisplay, i.ChiSeconds, i.EngSeconds, i.Outbound_sectionfare, i.Inbound_sectionfare, i.comment) for i in self.stopreporter])
+        c.executemany('INSERT INTO termini VALUES (?,?,?,?,?,?,?,?,?)', [(i.allexit, i.eric, i.destination, i.busfull, i.flip[3] if len(i.flip) > 3 else '', i.flip[2] if len(i.flip) > 2 else '', i.flip[1] if len(i.flip) > 1 else '', i.flip[0] if len(i.flip) > 0 else '', i.RTID) for i in self.termini])
+        c.executemany('INSERT INTO infosystem VALUES (?,?,?,?,?,?)', [(i.single_or_dual_dir, i.route, i.direction1, i.direction2, str(i.busstop_list1_class.db_export), str(i.busstop_list2_class.db_export)) for i in self.infosystem])
 
         database_file.commit()
         database_file.close()
 
         print(f"Saved to hof_{hofname} folder")
+
     def load_from_db(self, hofname: str) -> None:
 
 
@@ -547,3 +579,114 @@ $stoplist2
         database_file.close()
         print(f"Loaded from hof_{hofname} folder")
 
+    def load_from_hof(self, filename: str) -> None:
+        hof_entry = HOF_Hanover()
+        with open(filename, 'r') as f:
+            lines = [line.strip() for line in f]
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            if line == "[name]":
+                hof_entry.name = lines[i + 1]
+                i += 2
+            elif line == "[servicetrip]":
+                hof_entry.servicetrip = lines[i + 1]
+                i += 2
+            elif line == "[addterminus]":
+                param = lines[i].replace("[addterminus]", "").strip()
+                is_allexit = param.endswith("_allexit")
+                hof_entry.add_terminus(
+                    is_allexit,
+                    lines[i + 1],
+                    lines[i + 2],
+                    lines[i + 3],
+                    lines[i + 4 : i + 8][::-1],
+                    lines[i + 8]
+                )
+                i += 9
+            elif line == "[addbusstop]":
+                stop_name = lines[i + 1]
+                if len(stop_name) > 5:
+                    # parse full stopreporter
+                    chi_sec, eng_sec = 0, 0
+                    time_parts = lines[i + 3].split()
+                    if len(time_parts) >= 1:
+                        chi_sec = int(time_parts[0])
+                    if len(time_parts) >= 2 and time_parts[1].isdigit():
+                        eng_sec = int(time_parts[1])
+                    inbound_price = -1.0
+                    if lines[i + 4].startswith('$'):
+                        inbound_price = float(lines[i + 4].lstrip('$'))
+                        # print(inbound_price)
+                    outbound_price = -1.0
+                    if lines[i + 5].startswith('$'):
+                        outbound_price = float(lines[i + 5].lstrip('$'))
+                        # print("op",outbound_price)
+                    hof_entry.add_stopreporter(
+                        stop_name,
+                        lines[i + 2],
+                        chi_sec,
+                        eng_sec,
+                        inbound_price,
+                        outbound_price
+                    )
+                    
+                    i += 7
+                else:
+                    # parse DDU
+                    bay_number = int(lines[i + 2][-1])
+                    stop_number = int(lines[i + 3][-1])
+                    inbound_price = float(lines[i + 4].lstrip('$')) if lines[i + 4].startswith('$') else 0.0
+                    outbound_price = float(lines[i + 5].lstrip('$')) if lines[i + 5].startswith('$') else 0.0
+                    hof_entry.add_ddu(
+                        stop_name,
+                        lines[i + 2],
+                        lines[i + 3],
+                        inbound_price,
+                        outbound_price,
+                        bay_number,
+                        stop_number
+                    )
+                    i += 6
+                
+            elif line == "[infosystem_busstop_list]":
+                # busstop_count_1 = int(lines[i + 1])
+                # busstop_count_2 = int(lines[i + 2])
+                # start_idx = i + 3
+                # end_idx_1 = start_idx + busstop_count_1
+                # end_idx_2 = end_idx_1 + busstop_count_2
+                # hof_entry.infosystem[-1].busstop_list1_class.busstops = lines[start_idx:end_idx_1]
+                # hof_entry.infosystem[-1].busstop_list2_class.busstops = lines[end_idx_1:end_idx_2]
+                # i = end_idx_2
+                if len(self.infosystem) > 0 and self.infosystem[-1].route == lines[i + 2]:
+                    startidx = i + 3
+                    endidx = startidx + int(lines[i + 1])
+                    self.infosystem[-1].busstop_list2_class.busstops = lines[startidx:endidx]
+                    self.infosystem[-1].trip2_class.Destination = lines[startidx:endidx][-2]
+                    i = endidx
+                else:
+                    busstop_count_1 = int(lines[i + 1])
+                    rtno = lines[i + 2]
+                    startidx = i + 3
+                    endidx = startidx + busstop_count_1
+                    bsl1 = lines[startidx:endidx]
+                    hof_entry.add_infosystem(
+                        single_or_dual_dir=True,
+                        route=rtno,
+                        dir1=bsl1[-2],
+                        dir2="",
+                        bustoplist1=bsl1,
+                        bustoplist2=[]
+                    )
+                    i = endidx
+
+            else:
+                i += 1
+        # print(hof_entry.showfullhof())
+        self.name = hof_entry.name
+        self.servicetrip = hof_entry.servicetrip
+        self.ddu = hof_entry.ddu
+        self.stopreporter = hof_entry.stopreporter
+        self.termini = hof_entry.termini
+        self.infosystem = hof_entry.infosystem
+        print(f"Loaded from {filename}")

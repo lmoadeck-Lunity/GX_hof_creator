@@ -22,5 +22,15 @@ hof = HOF.HOF_Hanover('testing')
 
 # print(hof.showfullhof())
 # hof.save_to_db("testing")
-hof.load_from_db("testing")
-print(hof.export_hof("testing"))
+# hof.load_from_db("testing")
+# print(hof.export_hof("testing"))
+hof.load_from_hof("Cherryland_VC_KMB_6W.hof")
+hof.export_hof("Cherryland_VC_KMB_6W2.hof")
+# print(hof.ddu,hof.stopreporter,hof.infosystem,hof.termini)
+# for i in hof.infosystem:
+# for i in hof.stopreporter:
+    # print(i.Inbound_sectionfare,i.Outbound_sectionfare)
+#     print(i)
+# hof.add_ddu('268C','Kwun Tong Ferry','Long Ping Station',20.1,20.1,1,2)
+hof.save_to_db("Cherryland_VC_KMB_6W")
+# print(hof.showfullhof())
