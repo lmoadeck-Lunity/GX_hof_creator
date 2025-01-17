@@ -520,10 +520,8 @@ $stoplist2
         with open(filename, 'w') as f:
             f.write(self.showfullhof())
             print(f"Exported to {filename}, all comments have been destroyed.")
-    def save_to_db(self, hofname: str) -> None:
-        import os
-        os.makedirs(f'hof_{hofname}', exist_ok=True)
-        database_file = sqlite3.connect(f'hof_{hofname}/{hofname}.db')
+    def save_to_db(self, filename: str) -> None:
+        database_file = sqlite3.connect(f'{filename}')
         c = database_file.cursor()
         c.execute(f'''CREATE TABLE IF NOT EXISTS ddu (
                 RTNO TEXT, Outbound_dir TEXT, Inbound_dir TEXT,
@@ -556,12 +554,12 @@ $stoplist2
         database_file.commit()
         database_file.close()
 
-        print(f"Saved to hof_{hofname} folder")
+        print(f"Saved to {filename}")
 
-    def load_from_db(self, hofname: str) -> None:
+    def load_from_db(self, filename: str) -> None:
 
 
-        database_file = sqlite3.connect(f'hof_{hofname}/{hofname}.db')
+        database_file = sqlite3.connect(filename)
         c = database_file.cursor()
         c.execute(f'''SELECT * FROM ddu''')
         # self.ddu = [self.Busstop_DDU(*i) for i in c.fetchall()]
@@ -611,7 +609,7 @@ $stoplist2
             ls[index][5] = ls[index][5][1:-1].replace("'","").split(', ')
         self.infosystem = [self.Infosystem(*i) for i in ls]
         database_file.close()
-        print(f"Loaded from hof_{hofname} folder")
+        print(f"Loaded from {filename}")
 
     def load_from_hof(self, filename: str) -> None:
         hof_entry = HOF_Hanover()
