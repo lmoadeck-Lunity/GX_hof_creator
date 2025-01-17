@@ -566,8 +566,8 @@ $stoplist2
         ls = c.fetchall()
         for index, i in enumerate(ls):
             ls[index] = list(i)
-            ls[index][3] = f"{float(ls[index][3]):.1f}" if ls[index][3].replace(".","").isnumeric() else -1.0
-            ls[index][4] = f"{float(ls[index][4]):.1f}" if ls[index][4].replace(".","").isnumeric() else -1.0
+            ls[index][3] = f"{float(ls[index][3]):.1f}" if (isinstance(ls[index][3],float) or ls[index][3].replace(".","").isnumeric()) else -1.0
+            ls[index][4] = f"{float(ls[index][4]):.1f}" if (isinstance(ls[index][4],float) or ls[index][4].replace(".","").isnumeric()) else -1.0
             # print(ls[index])
         self.ddu = [self.Busstop_DDU(*i) for i in ls]
         c.execute(f'''SELECT * FROM stopreporter''')
@@ -613,7 +613,7 @@ $stoplist2
 
     def load_from_hof(self, filename: str) -> None:
         hof_entry = HOF_Hanover()
-        with open(filename, 'r') as f:
+        with open(filename, 'r',encoding="utf-8") as f:
             lines = [line.strip() for line in f]
         i = 0
         while i < len(lines):
@@ -646,8 +646,9 @@ $stoplist2
                 )
                 i += 9
             elif line == "[addbusstop]":
+                # print(len(lines[i + 1]), len(lines[i + 3]),lines[i + 3],lines[i + 1])
                 stop_name = lines[i + 1]
-                if len(stop_name) > 5:
+                if len(stop_name) >= 5 and len(lines[i+3]) <= 5:
                     # parse full stopreporter
                     chi_sec, eng_sec = 0, 0
                     time_parts = lines[i + 3].split()
@@ -675,6 +676,8 @@ $stoplist2
                     i += 7
                 else:
                     # parse DDU
+                    # print(lines[i+2])
+                    # print(lines[i+3])
                     sectiontimes_Y = int(lines[i + 2][-1])
                     sectiontimes_Z = int(lines[i + 3][-1])
                     inbound_price = float(lines[i + 4].lstrip('$')) if lines[i + 4].startswith('$') else 0.0
