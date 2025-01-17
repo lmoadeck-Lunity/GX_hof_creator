@@ -5,5 +5,7 @@ __pycache__
 .venv
 *.hof
 *.db
-*.ui
+*.ui*
+*pyproject*
+.qtcreator/
 converter.py

@@ -1,7 +1,7 @@
 # This Python file uses the following encoding: utf-8
 import sys
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QTableWidgetItem
 
 # Important:
 # You need to run the following command to generate the ui_form.py file
@@ -24,9 +24,9 @@ from HOF import ericcode
 #         self.ui = HOFView_Ui_MainWindow()
 #         self.ui.setupUi(self)
 class Main(QMainWindow):
-    hof_class = None
+    hof_class = HOF_KMBHan()
     opened_windows = []
-    def raise_unimplemented():
+    def raise_unimplemented(self) -> None:
         message = QMessageBox()
         message.setMinimumSize(200, 100)
         message.setWindowTitle("Error")
@@ -51,6 +51,7 @@ class Main(QMainWindow):
                 Main.hof_class.load_from_db(file[0])
                 Main.opened_windows.append(Main.HOFView())
                 Main.opened_windows[-1].show()
+                self.close()
                 
                 
 
@@ -85,8 +86,11 @@ class Main(QMainWindow):
             item =  self.ui.listWidget_2.currentIndex()
             index = item.row()
             self.ui.listWidget.clear()
-            for i in (Main.hof_class.infosystem[index].busstoplist1 if Main.HOFView.bus_rt_direction == 1 else Main.hof_class.infosystem[index].busstoplist2):
-                self.ui.listWidget.addItem(i.name)
+            for i in (Main.hof_class.infosystem[index].db_export_bsl1 if Main.HOFView.bus_rt_direction == 1 else Main.hof_class.infosystem[index].db_export_bsl2):
+                self.ui.listWidget.addItem(i)
+            self.ui.tableWidget.setItem(0, 0, QTableWidgetItem(Main.hof_class.infosystem[index].route))
+            self.ui.tableWidget.setItem(0, 1, QTableWidgetItem(Main.hof_class.infosystem[index].direction1))
+            self.ui.tableWidget.setItem(0, 2, QTableWidgetItem(Main.hof_class.infosystem[index].direction2))
             # return Main.hof_class.infosystem[index].busstoplist1 if Main.HOFView.bus_rt_direction == 1 else Main.hof_class.infosystem[index].busstoplist2
 
         def closewindow(self):
