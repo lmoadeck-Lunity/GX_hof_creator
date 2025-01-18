@@ -705,7 +705,7 @@ $stoplist2
                 if len(self.infosystem) > 0 and self.infosystem[-1].route == lines[i + 2]:
                     startidx = i + 3
                     endidx = startidx + int(lines[i + 1])
-                    self.infosystem[-1].busstop_list2_class.busstops = lines[startidx:endidx]
+                    self.infosystem[-1].busstop_list2 = lines[startidx:endidx]
                     self.infosystem[-1].trip2_class.Destination = lines[startidx:endidx][-2]
                     i = endidx
                 else:
