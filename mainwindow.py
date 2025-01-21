@@ -25,10 +25,11 @@ def split(a, n):
     k, m = divmod(len(a), n)
     return (a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n))
 def search_in_slice(sliceee, name):
-    for stop in sliceee:
+    for index, stop in enumerate(sliceee):
         if stop.name == name:
-            return stop
-    return None
+            return stop, index
+    return None, -1
+    
 class ObservableList(list):
     def __init__(self, *args, callback=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -106,6 +107,15 @@ class Main(QMainWindow):
     #     # self.current_data_queue_index %= 50
     #     # self.next_queue_index +=1
     #     # self.next_queue_index %= 50
+    @staticmethod
+    def maybeSave(lst:list) -> bool:
+        if any(lst):
+            ret = QMessageBox.warning(None, "Application", "The document has been modified.\nDo you want to save your changes?", QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel) #type: ignore
+            if ret == QMessageBox.Save: #type: ignore
+                return True
+            elif ret == QMessageBox.Cancel: #type: ignore
+                return False
+        return True
     def fileexplorer(self) -> str:
 
         path_Selected = QFileDialog.getExistingDirectory(None, 'Select Directory', 'C:\\')
@@ -120,6 +130,8 @@ class Main(QMainWindow):
         message.setIcon(QMessageBox.Critical) # type: ignore
         message.setStandardButtons(QMessageBox.Ok) # type: ignore
         message.exec()
+
+
     class PrefWin(QMainWindow):
         def __init__(self, parent=None):
             super().__init__(parent)
@@ -188,7 +200,8 @@ class Main(QMainWindow):
                 self.ui.listWidget_5.addItem(ericcode(i.eric).retstr()) #termini
             for i in Main.hof_class.infosystem:
                 self.ui.listWidget_2.addItem(i.route) #infosystem
-
+            #----Termini, DDU, Stopreporter Part----#
+            self.ui.listWidget_3.doubleClicked.connect(self.open_bs_lw3)
             #----Infosystem Part----#
             self.ui.listWidget_2.itemSelectionChanged.connect(self.get_bsl)
             self.ui.listWidget_2.itemSelectionChanged.connect(self.change_rt_info)
@@ -207,26 +220,53 @@ class Main(QMainWindow):
                 with multiprocessing.Pool(threads) as pool:
                     results = pool.starmap(search_in_slice, [(slice, name) for slice in slices])
                 
-                for result in results:
-                    if result is not None:
-                        return result
-                return None
+                for slice_index, result in enumerate(results):
+                    if result[0] is not None:
+                        stop, index_in_slice = result
+                        # Calculate the actual index in the original list
+                        actual_index = slice_index * (len(ls) // threads) + index_in_slice
+                        return stop, actual_index
+                return None, -1
 
             item = self.ui.listWidget.currentItem()
             index = item.text()
-            stop = search_bs(index, multiprocessing.cpu_count())
+            stop, actual_index = search_bs(index, multiprocessing.cpu_count())
             if stop is not None:
-                Main.opened_windows.append(Main.AddBusStop(None,stop.name, stop.EngDisplay,stop.ChiSeconds,stop.EngSeconds,stop.Outbound_sectionfare if isinstance(stop.Outbound_sectionfare,float) else -1.0,stop.Inbound_sectionfare if isinstance(stop.Inbound_sectionfare,float) else -1.0,True if stop.name[0] == "_" else False))
+                Main.opened_windows.append(Main.AddBusStop(None,stop.name, 
+                                                           stop.EngDisplay,
+                                                           stop.ChiSeconds,
+                                                           stop.EngSeconds,
+                                                           stop.Outbound_sectionfare if isinstance(stop.Outbound_sectionfare,float) else -1.0,
+                                                           stop.Inbound_sectionfare if isinstance(stop.Inbound_sectionfare,float) else -1.0,
+                                                           True if stop.name[0] == "_" else False,curindex=actual_index))
                 Main.opened_windows[-1].show()
             else:
                 QMessageBox.warning(self, "Error", f"Bus stop {index} not found.")
+
+        def open_bs_lw3(self):
+            item = self.ui.listWidget_3.currentIndex()
+            index = item.row()
+            Main.opened_windows.append(
+                Main.AddBusStop(None,Main.hof_class.stopreporter[index].name, 
+                                Main.hof_class.stopreporter[index].EngDisplay,
+                                Main.hof_class.stopreporter[index].ChiSeconds,
+                                Main.hof_class.stopreporter[index].EngSeconds,
+                                Main.hof_class.stopreporter[index].Outbound_sectionfare if isinstance(Main.hof_class.stopreporter[index].Outbound_sectionfare,float) else -1.0, #type: ignore
+                                Main.hof_class.stopreporter[index].Inbound_sectionfare if isinstance(Main.hof_class.stopreporter[index].Inbound_sectionfare,float) else -1.0, #type: ignore
+                                True if Main.hof_class.stopreporter[index].name[0] == "_" else False,curindex=index)) #type: ignore
+            Main.opened_windows[-1].show()
+
+        def open_ddu(self):
+            Main.raise_unimplemented()
+        def open_termini(self):
+            Main.raise_unimplemented()
         def dirchange_Y(self):
             Main.bus_rt_direction = 1
-            print(self.bus_rt_direction)
+            # print(self.bus_rt_direction)
             self.get_bsl()
         def dirchange_Z(self):
             Main.bus_rt_direction = 2
-            print(self.bus_rt_direction)
+            # print(self.bus_rt_direction)
             self.get_bsl()
         def get_bsl(self):
             # print("hi")
@@ -263,8 +303,9 @@ class Main(QMainWindow):
     
 
     class AddBusStop(QMainWindow):
-        def __init__(self, parent=None,name:str = "",engdisp:str="",chisec:int=0,engsec:int=0,osf:float=-1.0,isf:float=-1.0,autoskip:bool=False):
+        def __init__(self, parent=None,name:str = "",engdisp:str="",chisec:int=0,engsec:int=0,osf:float=-1.0,isf:float=-1.0,autoskip:bool=False,curindex:int=0):
             super().__init__(parent)
+            self.curindex = curindex
             self.ui = AddBusStop_UI()
             self.ui.setupUi(self)
             self.ui.plainTextEdit.setPlainText(name)
@@ -274,16 +315,57 @@ class Main(QMainWindow):
             self.ui.doubleSpinBox.setValue(osf)
             self.ui.doubleSpinBox_2.setValue(isf)
             self.ui.checkBox.setChecked(autoskip)
-
         def get_bs(self):
             Main.raise_unimplemented()
-            
+        def closeEvent(self,event):
+            #             self._name = name
+            # self._EngDisplay = EngDisplay
+            # self._ChiSeconds = str(ChiSeconds).rjust(2,'0')
+            # self._EngSeconds = str(EngSeconds).rjust(2,'0')
+            # self._Outbound_sectionfare = f"${Outbound_sectionfare:.1f}" if isinstance(Outbound_sectionfare,float) and Outbound_sectionfare != -1.0 else name
+            # self._Inbound_sectionfare = f"${Inbound_sectionfare:.1f}" if isinstance(Inbound_sectionfare,float) and Inbound_sectionfare != -1.0 else name
 
+            # lst = [self.ui.plainTextEdit.document().isModified(), self.ui.plainTextEdit_2.document().isModified(), self.ui.spinBox.value() != 0, self.ui.spinBox_2.value() != 0, self.ui.doubleSpinBox.value() != 0.0, self.ui.doubleSpinBox_2.value() != 0.0]
+
+
+            Main.hof_class.stopreporter[self.curindex].name = self.ui.plainTextEdit.toPlainText()
+            Main.hof_class.stopreporter[self.curindex].EngDisplay = self.ui.plainTextEdit_2.toPlainText()
+            Main.hof_class.stopreporter[self.curindex].ChiSeconds = self.ui.spinBox.value()
+            Main.hof_class.stopreporter[self.curindex].EngSeconds = self.ui.spinBox_2.value()
+            Main.hof_class.stopreporter[self.curindex].Outbound_sectionfare = self.ui.doubleSpinBox.value()
+            Main.hof_class.stopreporter[self.curindex].Inbound_sectionfare = self.ui.doubleSpinBox_2.value()
+            event.accept() # let the window close
     class AddDDU(QMainWindow):
-        def __init__(self, parent=None):
+        def __init__(self, parent=None,RTNO:str="",OutDir:str="",InDir:str="",OutSecFare:float=-1.0,InSecFare:float=-1.0,Out_SectionCount:int=0,In_SectionCount:int=0,curindex:int=0):
             super().__init__(parent)
+            self.curindex = curindex
             self.ui = AddDDU_UI()
             self.ui.setupUi(self)
+            self.ui.plainTextEdit.setPlainText(RTNO)
+            self.ui.plainTextEdit_2.setPlainText(OutDir)
+            self.ui.plainTextEdit_3.setPlainText(InDir)
+            self.ui.doubleSpinBox.setValue(OutSecFare)
+            self.ui.doubleSpinBox_2.setValue(InSecFare)
+            self.ui.spinBox.setValue(Out_SectionCount)
+            self.ui.spinBox_2.setValue(In_SectionCount)
+        
+        def closeEvent(self,event):
+            # lst = [self.ui.plainTextEdit.document().isModified(), self.ui.plainTextEdit_2.document().isModified(), self.ui.plainTextEdit_3.document().isModified(), self.ui.doubleSpinBox.value() != 0.0, self.ui.doubleSpinBox_2.value() != 0.0, self.ui.spinBox.value() != 0, self.ui.spinBox_2.value() != 0]
+            # if Main.maybeSave(lst):
+
+            Main.hof_class.ddu[self.curindex].RTNO = self.ui.plainTextEdit.toPlainText()
+            Main.hof_class.ddu[self.curindex].Outbound_dir = self.ui.plainTextEdit_2.toPlainText()
+            Main.hof_class.ddu[self.curindex].Inbound_dir = self.ui.plainTextEdit_3.toPlainText()
+            Main.hof_class.ddu[self.curindex].Outbound_price = self.ui.doubleSpinBox.value()
+            Main.hof_class.ddu[self.curindex].Inbound_price = self.ui.doubleSpinBox_2.value()
+            Main.hof_class.ddu[self.curindex].sectiontimes_Y = self.ui.spinBox.value()
+            Main.hof_class.ddu[self.curindex].sectiontimes_Z = self.ui.spinBox_2.value()
+            event.accept()
+            # else:
+            #     event.ignore()
+            # self.close()
+
+
 
     class AddRouteEntry(QMainWindow):
         def __init__(self, parent=None):

@@ -676,8 +676,8 @@ $stoplist2
                     i += 7
                 else:
                     # parse DDU
-                    # print(lines[i+2])
-                    # print(lines[i+3])
+                    print(lines[i+2])
+                    print(lines[i+3])
                     sectiontimes_Y = int(lines[i + 2][-1])
                     sectiontimes_Z = int(lines[i + 3][-1])
                     inbound_price = float(lines[i + 4].lstrip('$')) if lines[i + 4].startswith('$') else 0.0
