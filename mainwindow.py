@@ -116,7 +116,9 @@ class Main(QMainWindow):
             elif ret == QMessageBox.Cancel: #type: ignore
                 return False
         return True
-    def fileexplorer(self) -> str:
+    
+    @staticmethod
+    def fileexplorer() -> str:
 
         path_Selected = QFileDialog.getExistingDirectory(None, 'Select Directory', 'C:\\')
 
@@ -162,10 +164,12 @@ class Main(QMainWindow):
             Main.hof_class = HOF_KMBHan()
             file = QFileDialog.getOpenFileName(self, 'Open Database', 'C:\\', 'Database Files (*.db)')
             if file[0]:
+
                 Main.hof_class.load_from_db(file[0])
                 Main.opened_windows.append(Main.HOFView())
                 Main.opened_windows[-1].show()
                 Main.hofname = file[0].split("/")[-1].removesuffix(".db")
+                Main.export_path = file[0].removesuffix(Main.hofname + ".db")
                 self.close()
                 
                 
@@ -202,6 +206,8 @@ class Main(QMainWindow):
                 self.ui.listWidget_2.addItem(i.route) #infosystem
             #----Termini, DDU, Stopreporter Part----#
             self.ui.listWidget_3.doubleClicked.connect(self.open_bs_lw3)
+            self.ui.listWidget_4.doubleClicked.connect(self.open_ddu)
+            self.ui.listWidget_5.doubleClicked.connect(self.open_termini)
             #----Infosystem Part----#
             self.ui.listWidget_2.itemSelectionChanged.connect(self.get_bsl)
             self.ui.listWidget_2.itemSelectionChanged.connect(self.change_rt_info)
@@ -241,7 +247,7 @@ class Main(QMainWindow):
                                                            True if stop.name[0] == "_" else False,curindex=actual_index))
                 Main.opened_windows[-1].show()
             else:
-                QMessageBox.warning(self, "Error", f"Bus stop {index} not found.")
+                QMessageBox.warning(self, "Error", f"Bus stop {index} not found.", QMessageBox.Ok) #type: ignore
 
         def open_bs_lw3(self):
             item = self.ui.listWidget_3.currentIndex()
@@ -256,10 +262,27 @@ class Main(QMainWindow):
                                 True if Main.hof_class.stopreporter[index].name[0] == "_" else False,curindex=index)) #type: ignore
             Main.opened_windows[-1].show()
 
+
         def open_ddu(self):
-            Main.raise_unimplemented()
+            item = self.ui.listWidget_4.currentIndex()
+            index = item.row()
+            Main.opened_windows.append(Main.AddDDU(None,Main.hof_class.ddu[index].RTNO, 
+                                                   Main.hof_class.ddu[index].Outbound_dir,
+                                                   Main.hof_class.ddu[index].Inbound_dir,
+                                                   Main.hof_class.ddu[index].Outbound_price if isinstance(Main.hof_class.ddu[index].Outbound_price,float) else -1.0, #type: ignore
+                                                   Main.hof_class.ddu[index].Inbound_price if isinstance(Main.hof_class.ddu[index].Inbound_price,float) else -1.0, #type: ignore
+                                                   Main.hof_class.ddu[index].sectiontimes_Y,
+                                                   Main.hof_class.ddu[index].sectiontimes_Z,curindex=index)) #type: ignore
+            Main.opened_windows[-1].show()
+
         def open_termini(self):
-            Main.raise_unimplemented()
+            item = self.ui.listWidget_5.currentIndex()
+            index = item.row()
+            Main.opened_windows.append(Main.AddTermini(None,Main.hof_class.termini[index].eric, 
+                                                       Main.hof_class.termini[index].destination,
+                                                       Main.hof_class.termini[index].busfull,
+                                                       Main.hof_class.termini[index].flip,curindex=index))
+            Main.opened_windows[-1].show()
         def dirchange_Y(self):
             Main.bus_rt_direction = 1
             # print(self.bus_rt_direction)
@@ -318,6 +341,9 @@ class Main(QMainWindow):
         def get_bs(self):
             Main.raise_unimplemented()
         def closeEvent(self,event):
+
+
+        
             #             self._name = name
             # self._EngDisplay = EngDisplay
             # self._ChiSeconds = str(ChiSeconds).rjust(2,'0')
@@ -373,11 +399,27 @@ class Main(QMainWindow):
             self.ui = AddRouteEntry_UI()
             self.ui.setupUi(self)
 
+            
+
     class AddTermini(QMainWindow):
-        def __init__(self, parent=None):
+        def __init__(self, parent=None,eric:str="", Destination:str="",busfull:str="",disps:list=[],curindex:int=0):
             super().__init__(parent)
             self.ui = AddTermini_UI()
             self.ui.setupUi(self)
+            self.ui.plainTextEdit.setPlainText(eric)
+            self.ui.plainTextEdit_2.setPlainText(Destination)
+            self.ui.plainTextEdit_3.setPlainText(busfull)
+            # self.ui.tableWidget.setItem
+            for i in range(len(disps)):
+                self.ui.tableWidget.setItem(i, 0, QTableWidgetItem(disps[i]))
+
+        def select_flip(self):
+            files = QFileDialog.getOpenFileNames(self, 'Select Desti Display', 'C:\\', 'Destination Display Files (*.bmp)')
+            self.ui.tableWidget.clear()
+            for i in range(4,4-len(files),-1):
+                self.ui.tableWidget.setItem(i, 0, QTableWidgetItem(files[0][4-i]))
+
+        
 
 
 

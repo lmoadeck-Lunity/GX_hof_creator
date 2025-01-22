@@ -15,9 +15,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QLabel, QMainWindow,
-    QMenuBar, QPlainTextEdit, QSizePolicy, QStatusBar,
-    QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QGridLayout, QLabel,
+    QMainWindow, QMenuBar, QPlainTextEdit, QSizePolicy,
+    QStatusBar, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -26,60 +26,60 @@ class Ui_MainWindow(object):
         MainWindow.resize(318, 275)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
-        self.verticalLayoutWidget_2 = QWidget(self.centralwidget)
-        self.verticalLayoutWidget_2.setObjectName(u"verticalLayoutWidget_2")
-        self.verticalLayoutWidget_2.setGeometry(QRect(10, 10, 153, 211))
-        self.verticalLayout_2 = QVBoxLayout(self.verticalLayoutWidget_2)
+        self.gridLayout = QGridLayout(self.centralwidget)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.verticalLayout_2 = QVBoxLayout()
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.label_5 = QLabel(self.verticalLayoutWidget_2)
+        self.label_5 = QLabel(self.centralwidget)
         self.label_5.setObjectName(u"label_5")
 
         self.verticalLayout_2.addWidget(self.label_5)
 
-        self.label = QLabel(self.verticalLayoutWidget_2)
+        self.label = QLabel(self.centralwidget)
         self.label.setObjectName(u"label")
 
         self.verticalLayout_2.addWidget(self.label)
 
-        self.label_2 = QLabel(self.verticalLayoutWidget_2)
+        self.label_2 = QLabel(self.centralwidget)
         self.label_2.setObjectName(u"label_2")
 
         self.verticalLayout_2.addWidget(self.label_2)
 
-        self.label_3 = QLabel(self.verticalLayoutWidget_2)
+        self.label_3 = QLabel(self.centralwidget)
         self.label_3.setObjectName(u"label_3")
 
         self.verticalLayout_2.addWidget(self.label_3)
 
-        self.layoutWidget = QWidget(self.centralwidget)
-        self.layoutWidget.setObjectName(u"layoutWidget")
-        self.layoutWidget.setGeometry(QRect(170, 0, 141, 231))
-        self.verticalLayout = QVBoxLayout(self.layoutWidget)
+
+        self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
+
+        self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.checkBox = QCheckBox(self.layoutWidget)
+        self.checkBox = QCheckBox(self.centralwidget)
         self.checkBox.setObjectName(u"checkBox")
 
         self.verticalLayout.addWidget(self.checkBox)
 
-        self.plainTextEdit = QPlainTextEdit(self.layoutWidget)
+        self.plainTextEdit = QPlainTextEdit(self.centralwidget)
         self.plainTextEdit.setObjectName(u"plainTextEdit")
         self.plainTextEdit.setMaximumSize(QSize(139, 28))
 
         self.verticalLayout.addWidget(self.plainTextEdit)
 
-        self.plainTextEdit_2 = QPlainTextEdit(self.layoutWidget)
+        self.plainTextEdit_2 = QPlainTextEdit(self.centralwidget)
         self.plainTextEdit_2.setObjectName(u"plainTextEdit_2")
         self.plainTextEdit_2.setMaximumSize(QSize(139, 28))
 
         self.verticalLayout.addWidget(self.plainTextEdit_2)
 
-        self.plainTextEdit_3 = QPlainTextEdit(self.layoutWidget)
+        self.plainTextEdit_3 = QPlainTextEdit(self.centralwidget)
         self.plainTextEdit_3.setObjectName(u"plainTextEdit_3")
         self.plainTextEdit_3.setMaximumSize(QSize(139, 28))
 
         self.verticalLayout.addWidget(self.plainTextEdit_3)
+
+
+        self.gridLayout.addLayout(self.verticalLayout, 0, 1, 1, 1)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
