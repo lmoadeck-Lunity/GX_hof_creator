@@ -196,18 +196,27 @@ class Main(QMainWindow):
             super().__init__(parent)
             self.ui = HOFView_Ui_MainWindow()
             self.ui.setupUi(self)
-            for i in Main.hof_class.stopreporter:
-                self.ui.listWidget_3.addItem(i.name) #stopreporter
-            for i in Main.hof_class.ddu:
-                self.ui.listWidget_4.addItem(i.RTNO) #ddu
-            for i in Main.hof_class.termini:
-                self.ui.listWidget_5.addItem(ericcode(i.eric).retstr()) #termini
-            for i in Main.hof_class.infosystem:
-                self.ui.listWidget_2.addItem(i.route) #infosystem
+            # for i in Main.hof_class.stopreporter:
+            #     self.ui.listWidget_3.addItem(i.name) #stopreporter
+            # for i in Main.hof_class.ddu:
+            #     self.ui.listWidget_4.addItem(i.RTNO) #ddu
+            # for i in Main.hof_class.termini:
+            #     self.ui.listWidget_5.addItem(ericcode(i.eric).retstr()) #termini
+            # for i in Main.hof_class.infosystem:
+            #     self.ui.listWidget_2.addItem(i.route) #infosystem
+            self.ui.listWidget_3.addItems([i.name for i in Main.hof_class.stopreporter])
+            self.ui.listWidget_4.addItems([i.RTNO for i in Main.hof_class.ddu])
+            self.ui.listWidget_5.addItems([ericcode(i.eric).retstr() for i in Main.hof_class.termini])
+            self.ui.listWidget_2.addItems([i.route for i in Main.hof_class.infosystem])
             #----Termini, DDU, Stopreporter Part----#
             self.ui.listWidget_3.doubleClicked.connect(self.open_bs_lw3)
             self.ui.listWidget_4.doubleClicked.connect(self.open_ddu)
             self.ui.listWidget_5.doubleClicked.connect(self.open_termini)
+            self.ui.pushButton_3.clicked.connect(lambda: self.add_stuff(1))
+            self.ui.pushButton_7.clicked.connect(lambda: self.add_stuff(2))
+            self.ui.pushButton_14.clicked.connect(lambda: self.add_stuff(3))
+            self.ui.pushButton_9.clicked.connect(lambda: self.add_stuff(4))
+
             #----Infosystem Part----#
             self.ui.listWidget_2.itemSelectionChanged.connect(self.get_bsl)
             self.ui.listWidget_2.itemSelectionChanged.connect(self.change_rt_info)
@@ -218,7 +227,55 @@ class Main(QMainWindow):
             #----Ctrl+S Shortcut----#
             self.shortcut = QShortcut(QKeySequence("Ctrl+S"), self)
             self.shortcut.activated.connect(self.save)
+        def add_stuff(self,stuff:int):
+            dct = {
+                1: (Main.hof_class.stopreporter, self.ui.listWidget_3),
+                2: (Main.hof_class.ddu, self.ui.listWidget_4),
+                3: (Main.hof_class.termini, self.ui.listWidget_5),
+                4: (Main.hof_class.infosystem, self.ui.listWidget_2)
+            }
+            if stuff == 1:
+                lenth = len(Main.hof_class.stopreporter)
+                Main.hof_class.add_stopreporter(f"NS{lenth}", "New Stop", 0, 0, -1.0, -1.0)
+                Main.opened_windows.append(Main.AddBusStop(None,f"NS{lenth}", "New Stop", 0, 0, -1.0, -1.0, False,curindex=lenth))
+                Main.opened_windows[-1].show()
+                dct[stuff][1].addItem(f"NS{lenth}")
+            elif stuff == 2:
+                lenth = len(Main.hof_class.ddu)
+                Main.hof_class.add_ddu(f"RT{lenth}", "Outbound", "Inbound", -1.0, -1.0, 0, 0)
+                Main.opened_windows.append(Main.AddDDU(None,f"RT{lenth}", "Outbound", "Inbound", -1.0, -1.0, 0, 0,curindex=lenth))
+                Main.opened_windows[-1].show()
+                dct[stuff][1].addItem(f"RT{lenth}")
+            elif stuff == 3:
+                lenth = len(Main.hof_class.termini)
+                Main.hof_class.add_terminus(False, f"{lenth}A", "","",[],f"{lenth}B")
+                Main.opened_windows.append(Main.AddTermini(None,f"{lenth}A", "", "", [],curindex=lenth))
+                Main.opened_windows[-1].show()
+                dct[stuff][1].addItem(f"{lenth}A")
+            elif stuff == 4:
+                lenth = len(Main.hof_class.infosystem)
+                Main.hof_class.add_infosystem(False, f"R{lenth}", "Outbound", "Inbound", [], [])
+                
+                dct[stuff][1].addItem(f"R{lenth}")
+            
+        def duplicate_stuff(self,stuff:int):
+            dct = {
+                1: (Main.hof_class.stopreporter, self.ui.listWidget_3),
+                2: (Main.hof_class.ddu, self.ui.listWidget_4),
+                3: (Main.hof_class.termini, self.ui.listWidget_5),
+                4: (Main.hof_class.infosystem, self.ui.listWidget_2)
+            }
+            Main.raise_unimplemented()
 
+        def delete_stuff(self,stuff:int):
+            dct = {
+                1: (Main.hof_class.stopreporter, self.ui.listWidget_3),
+                2: (Main.hof_class.ddu, self.ui.listWidget_4),
+                3: (Main.hof_class.termini, self.ui.listWidget_5),
+                4: (Main.hof_class.infosystem, self.ui.listWidget_2)
+            }
+            Main.raise_unimplemented()
+        
         def open_bs(self):
             def search_bs(name: str, threads: int):
                 ls = Main.hof_class.stopreporter
@@ -353,13 +410,15 @@ class Main(QMainWindow):
 
             # lst = [self.ui.plainTextEdit.document().isModified(), self.ui.plainTextEdit_2.document().isModified(), self.ui.spinBox.value() != 0, self.ui.spinBox_2.value() != 0, self.ui.doubleSpinBox.value() != 0.0, self.ui.doubleSpinBox_2.value() != 0.0]
 
-
+            # if 
             Main.hof_class.stopreporter[self.curindex].name = self.ui.plainTextEdit.toPlainText()
             Main.hof_class.stopreporter[self.curindex].EngDisplay = self.ui.plainTextEdit_2.toPlainText()
             Main.hof_class.stopreporter[self.curindex].ChiSeconds = self.ui.spinBox.value()
             Main.hof_class.stopreporter[self.curindex].EngSeconds = self.ui.spinBox_2.value()
             Main.hof_class.stopreporter[self.curindex].Outbound_sectionfare = self.ui.doubleSpinBox.value()
             Main.hof_class.stopreporter[self.curindex].Inbound_sectionfare = self.ui.doubleSpinBox_2.value()
+            # Main.HOFView().ui.listWidget_3.item(self.curindex).setText(self.ui.plainTextEdit.toPlainText())
+            # item.setText(Main.hof_class.stopreporter[self.curindex].name)
             event.accept() # let the window close
     class AddDDU(QMainWindow):
         def __init__(self, parent=None,RTNO:str="",OutDir:str="",InDir:str="",OutSecFare:float=-1.0,InSecFare:float=-1.0,Out_SectionCount:int=0,In_SectionCount:int=0,curindex:int=0):
