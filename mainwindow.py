@@ -3,6 +3,7 @@ import sys
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QTableWidgetItem
 from PySide6.QtGui import QKeySequence,QShortcut
+from PySide6.QtCore import Signal
 
 # Important:
 # You need to run the following command to generate the ui_form.py file
@@ -20,7 +21,7 @@ import multiprocessing
 import tkinter as tk
 from HOF import HOF_Hanover as HOF_KMBHan
 from HOF import ericcode
-
+from collections import deque
 def split(a, n):
     k, m = divmod(len(a), n)
     return (a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n))
@@ -95,8 +96,8 @@ class Main(QMainWindow):
     # cross_method_dataqueue = ObservableList([None for _ in range(50)], callback=None)
     # head_index = 0
     # tail_index = 0
-    cross_method_datum = [None for _ in range(50)]
-
+    
+    cross_method_datum = deque([Signal(int) for _ in range(1)], maxlen=50)  
     # def __init__(self, parent=None):
     #     super().__init__(parent)
     #     self.cross_method_dataqueue = ObservableList([None for _ in range(50)], callback=self.indexIncrement)
@@ -255,7 +256,7 @@ class Main(QMainWindow):
             elif stuff == 4:
                 lenth = len(Main.hof_class.infosystem)
                 Main.hof_class.add_infosystem(False, f"R{lenth}", "Outbound", "Inbound", [], [])
-                
+                Main.opened_windows.append(Main.AddRouteEntry(None))
                 dct[stuff][1].addItem(f"R{lenth}")
             
         def duplicate_stuff(self,stuff:int):
@@ -276,6 +277,12 @@ class Main(QMainWindow):
             }
             Main.raise_unimplemented()
         
+        def update_listviews(self):
+            Main.raise_unimplemented()
+            
+
+
+
         def open_bs(self):
             def search_bs(name: str, threads: int):
                 ls = Main.hof_class.stopreporter
@@ -383,6 +390,7 @@ class Main(QMainWindow):
     
 
     class AddBusStop(QMainWindow):
+        sig = Signal(int)
         def __init__(self, parent=None,name:str = "",engdisp:str="",chisec:int=0,engsec:int=0,osf:float=-1.0,isf:float=-1.0,autoskip:bool=False,curindex:int=0):
             super().__init__(parent)
             self.curindex = curindex
@@ -417,13 +425,17 @@ class Main(QMainWindow):
             Main.hof_class.stopreporter[self.curindex].EngSeconds = self.ui.spinBox_2.value()
             Main.hof_class.stopreporter[self.curindex].Outbound_sectionfare = self.ui.doubleSpinBox.value()
             Main.hof_class.stopreporter[self.curindex].Inbound_sectionfare = self.ui.doubleSpinBox_2.value()
+            self.sig.emit(self.curindex)
             # Main.HOFView().ui.listWidget_3.item(self.curindex).setText(self.ui.plainTextEdit.toPlainText())
             # item.setText(Main.hof_class.stopreporter[self.curindex].name)
             event.accept() # let the window close
+
     class AddDDU(QMainWindow):
+        sig = Signal(int)
         def __init__(self, parent=None,RTNO:str="",OutDir:str="",InDir:str="",OutSecFare:float=-1.0,InSecFare:float=-1.0,Out_SectionCount:int=0,In_SectionCount:int=0,curindex:int=0):
             super().__init__(parent)
             self.curindex = curindex
+            # self.sig = Signal(int)
             self.ui = AddDDU_UI()
             self.ui.setupUi(self)
             self.ui.plainTextEdit.setPlainText(RTNO)
@@ -445,6 +457,9 @@ class Main(QMainWindow):
             Main.hof_class.ddu[self.curindex].Inbound_price = self.ui.doubleSpinBox_2.value()
             Main.hof_class.ddu[self.curindex].sectiontimes_Y = self.ui.spinBox.value()
             Main.hof_class.ddu[self.curindex].sectiontimes_Z = self.ui.spinBox_2.value()
+            self.sig.emit(self.curindex)
+            self.sig.connect(Main.HOFView().update_listviews)
+            
             event.accept()
             # else:
             #     event.ignore()
@@ -453,10 +468,21 @@ class Main(QMainWindow):
 
 
     class AddRouteEntry(QMainWindow):
-        def __init__(self, parent=None):
+        def __init__(self, parent=None,single_dual:bool=False,route:str="",Outbound_dir:str="",Inbound_dir:str="",curindex:int=0):
             super().__init__(parent)
             self.ui = AddRouteEntry_UI()
             self.ui.setupUi(self)
+            self.curindex = curindex
+            self.ui.plainTextEdit.setPlainText(route)
+            self.ui.plainTextEdit_2.setPlainText(Outbound_dir)
+            self.ui.plainTextEdit_3.setPlainText(Inbound_dir)
+            self.ui.checkBox.setChecked(single_dual)
+        
+        def closeEvent(self,event):
+            Main.hof_class.infosystem[self.curindex].route = self.ui.plainTextEdit.toPlainText()
+            Main.hof_class.infosystem[self.curindex].direction1 = self.ui.plainTextEdit_2.toPlainText()
+            Main.hof_class.infosystem[self.curindex].direction2 = self.ui.plainTextEdit_3.toPlainText()
+            event.accept()
 
             
 
