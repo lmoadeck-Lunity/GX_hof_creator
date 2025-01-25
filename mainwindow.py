@@ -3,7 +3,7 @@ import sys
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QTableWidgetItem
 from PySide6.QtGui import QKeySequence,QShortcut
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Slot
 
 # Important:
 # You need to run the following command to generate the ui_form.py file
@@ -276,9 +276,14 @@ class Main(QMainWindow):
                 4: (Main.hof_class.infosystem, self.ui.listWidget_2)
             }
             Main.raise_unimplemented()
-        
-        def update_listviews(self):
-            Main.raise_unimplemented()
+        @Slot(None, int) #type: ignore
+        def update_listviews(self,index:int) -> int:
+            print("hi", index)
+            self.ui.listWidget_3.item(index).setText(Main.hof_class.stopreporter[index].name)
+            self.ui.listWidget_4.item(index).setText(Main.hof_class.ddu[index].RTNO)
+            self.ui.listWidget_5.item(index).setText(ericcode(Main.hof_class.termini[index].eric).retstr())
+            self.ui.listWidget_2.item(index).setText(Main.hof_class.infosystem[index].route)
+            return 1
             
 
 
@@ -457,9 +462,9 @@ class Main(QMainWindow):
             Main.hof_class.ddu[self.curindex].Inbound_price = self.ui.doubleSpinBox_2.value()
             Main.hof_class.ddu[self.curindex].sectiontimes_Y = self.ui.spinBox.value()
             Main.hof_class.ddu[self.curindex].sectiontimes_Z = self.ui.spinBox_2.value()
-            self.sig.emit(self.curindex)
-            self.sig.connect(Main.HOFView().update_listviews)
             
+            self.sig.connect(Main.HOFView().update_listviews)
+            self.sig.emit(self.curindex)
             event.accept()
             # else:
             #     event.ignore()
