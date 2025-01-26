@@ -16,8 +16,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QFrame, QGridLayout,
-    QHeaderView, QLabel, QMainWindow, QMenuBar,
-    QPlainTextEdit, QSizePolicy, QSpacerItem, QStatusBar,
+    QHeaderView, QLabel, QLineEdit, QMainWindow,
+    QMenuBar, QSizePolicy, QSpacerItem, QStatusBar,
     QTableWidget, QTableWidgetItem, QToolButton, QVBoxLayout,
     QWidget)
 
@@ -30,6 +30,46 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(u"centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName(u"gridLayout")
+        self.toolButton = QToolButton(self.centralwidget)
+        self.toolButton.setObjectName(u"toolButton")
+        self.toolButton.setMaximumSize(QSize(23, 21))
+        icon = QIcon(QIcon.fromTheme(u"document-open"))
+        self.toolButton.setIcon(icon)
+
+        self.gridLayout.addWidget(self.toolButton, 4, 2, 1, 1)
+
+        self.tableWidget = QTableWidget(self.centralwidget)
+        if (self.tableWidget.columnCount() < 1):
+            self.tableWidget.setColumnCount(1)
+        __qtablewidgetitem = QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(0, __qtablewidgetitem)
+        if (self.tableWidget.rowCount() < 4):
+            self.tableWidget.setRowCount(4)
+        self.tableWidget.setObjectName(u"tableWidget")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tableWidget.sizePolicy().hasHeightForWidth())
+        self.tableWidget.setSizePolicy(sizePolicy)
+        self.tableWidget.setMinimumSize(QSize(0, 91))
+        self.tableWidget.setMaximumSize(QSize(16777215, 121))
+        self.tableWidget.setFrameShape(QFrame.Shape.StyledPanel)
+        self.tableWidget.setLineWidth(1)
+        self.tableWidget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.tableWidget.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        self.tableWidget.setRowCount(4)
+        self.tableWidget.horizontalHeader().setVisible(False)
+        self.tableWidget.horizontalHeader().setMinimumSectionSize(1)
+        self.tableWidget.horizontalHeader().setDefaultSectionSize(170)
+        self.tableWidget.horizontalHeader().setProperty(u"showSortIndicator", False)
+        self.tableWidget.horizontalHeader().setStretchLastSection(False)
+
+        self.gridLayout.addWidget(self.tableWidget, 4, 1, 2, 1)
+
+        self.verticalSpacer = QSpacerItem(20, 90, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.gridLayout.addItem(self.verticalSpacer, 5, 2, 1, 1)
+
         self.verticalLayout_2 = QVBoxLayout()
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.label_5 = QLabel(self.centralwidget)
@@ -59,73 +99,27 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.widget)
 
 
-        self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 3, 1)
+        self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 6, 1)
+
+        self.lineEdit = QLineEdit(self.centralwidget)
+        self.lineEdit.setObjectName(u"lineEdit")
+
+        self.gridLayout.addWidget(self.lineEdit, 1, 1, 1, 1)
+
+        self.lineEdit_2 = QLineEdit(self.centralwidget)
+        self.lineEdit_2.setObjectName(u"lineEdit_2")
+
+        self.gridLayout.addWidget(self.lineEdit_2, 2, 1, 1, 1)
 
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.plainTextEdit = QPlainTextEdit(self.centralwidget)
-        self.plainTextEdit.setObjectName(u"plainTextEdit")
-        self.plainTextEdit.setMinimumSize(QSize(0, 28))
-        self.plainTextEdit.setMaximumSize(QSize(16777215, 28))
-
-        self.verticalLayout.addWidget(self.plainTextEdit)
-
-        self.plainTextEdit_2 = QPlainTextEdit(self.centralwidget)
-        self.plainTextEdit_2.setObjectName(u"plainTextEdit_2")
-        self.plainTextEdit_2.setMinimumSize(QSize(0, 28))
-        self.plainTextEdit_2.setMaximumSize(QSize(16777215, 28))
-
-        self.verticalLayout.addWidget(self.plainTextEdit_2)
-
-        self.plainTextEdit_3 = QPlainTextEdit(self.centralwidget)
-        self.plainTextEdit_3.setObjectName(u"plainTextEdit_3")
-        self.plainTextEdit_3.setMinimumSize(QSize(0, 28))
-        self.plainTextEdit_3.setMaximumSize(QSize(16777215, 28))
-
-        self.verticalLayout.addWidget(self.plainTextEdit_3)
-
 
         self.gridLayout.addLayout(self.verticalLayout, 0, 1, 1, 2)
 
-        self.tableWidget = QTableWidget(self.centralwidget)
-        if (self.tableWidget.columnCount() < 1):
-            self.tableWidget.setColumnCount(1)
-        __qtablewidgetitem = QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(0, __qtablewidgetitem)
-        if (self.tableWidget.rowCount() < 4):
-            self.tableWidget.setRowCount(4)
-        self.tableWidget.setObjectName(u"tableWidget")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tableWidget.sizePolicy().hasHeightForWidth())
-        self.tableWidget.setSizePolicy(sizePolicy)
-        self.tableWidget.setMinimumSize(QSize(0, 91))
-        self.tableWidget.setMaximumSize(QSize(16777215, 121))
-        self.tableWidget.setFrameShape(QFrame.Shape.StyledPanel)
-        self.tableWidget.setLineWidth(1)
-        self.tableWidget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.tableWidget.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
-        self.tableWidget.setRowCount(4)
-        self.tableWidget.horizontalHeader().setVisible(False)
-        self.tableWidget.horizontalHeader().setMinimumSectionSize(1)
-        self.tableWidget.horizontalHeader().setDefaultSectionSize(170)
-        self.tableWidget.horizontalHeader().setProperty(u"showSortIndicator", False)
-        self.tableWidget.horizontalHeader().setStretchLastSection(False)
+        self.lineEdit_3 = QLineEdit(self.centralwidget)
+        self.lineEdit_3.setObjectName(u"lineEdit_3")
 
-        self.gridLayout.addWidget(self.tableWidget, 1, 1, 2, 1)
-
-        self.toolButton = QToolButton(self.centralwidget)
-        self.toolButton.setObjectName(u"toolButton")
-        self.toolButton.setMaximumSize(QSize(23, 21))
-        icon = QIcon(QIcon.fromTheme(u"document-open"))
-        self.toolButton.setIcon(icon)
-
-        self.gridLayout.addWidget(self.toolButton, 1, 2, 1, 1)
-
-        self.verticalSpacer = QSpacerItem(20, 90, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.gridLayout.addItem(self.verticalSpacer, 2, 2, 1, 1)
+        self.gridLayout.addWidget(self.lineEdit_3, 3, 1, 1, 1)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
@@ -143,12 +137,12 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Add Bus Stop", None))
+        self.toolButton.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        ___qtablewidgetitem = self.tableWidget.horizontalHeaderItem(0)
+        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"New Column", None));
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"Eric String (e.g: 289AY)", None))
         self.label_10.setText(QCoreApplication.translate("MainWindow", u"Destination", None))
         self.label_8.setText(QCoreApplication.translate("MainWindow", u"Busfull Display Filename", None))
         self.label_6.setText(QCoreApplication.translate("MainWindow", u"Displays", None))
-        ___qtablewidgetitem = self.tableWidget.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"New Column", None));
-        self.toolButton.setText(QCoreApplication.translate("MainWindow", u"...", None))
     # retranslateUi
 

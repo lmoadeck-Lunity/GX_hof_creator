@@ -16,7 +16,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QDoubleSpinBox, QGridLayout,
-    QLabel, QMainWindow, QMenuBar, QPlainTextEdit,
+    QLabel, QLineEdit, QMainWindow, QMenuBar,
     QSizePolicy, QSpinBox, QStatusBar, QVBoxLayout,
     QWidget)
 
@@ -24,11 +24,51 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(340, 270)
+        MainWindow.resize(517, 464)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName(u"gridLayout")
+        self.verticalLayout = QVBoxLayout()
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.lineEdit = QLineEdit(self.centralwidget)
+        self.lineEdit.setObjectName(u"lineEdit")
+
+        self.verticalLayout.addWidget(self.lineEdit)
+
+        self.lineEdit_2 = QLineEdit(self.centralwidget)
+        self.lineEdit_2.setObjectName(u"lineEdit_2")
+
+        self.verticalLayout.addWidget(self.lineEdit_2)
+
+        self.spinBox = QSpinBox(self.centralwidget)
+        self.spinBox.setObjectName(u"spinBox")
+
+        self.verticalLayout.addWidget(self.spinBox)
+
+        self.spinBox_2 = QSpinBox(self.centralwidget)
+        self.spinBox_2.setObjectName(u"spinBox_2")
+
+        self.verticalLayout.addWidget(self.spinBox_2)
+
+        self.doubleSpinBox = QDoubleSpinBox(self.centralwidget)
+        self.doubleSpinBox.setObjectName(u"doubleSpinBox")
+
+        self.verticalLayout.addWidget(self.doubleSpinBox)
+
+        self.doubleSpinBox_2 = QDoubleSpinBox(self.centralwidget)
+        self.doubleSpinBox_2.setObjectName(u"doubleSpinBox_2")
+
+        self.verticalLayout.addWidget(self.doubleSpinBox_2)
+
+        self.checkBox = QCheckBox(self.centralwidget)
+        self.checkBox.setObjectName(u"checkBox")
+
+        self.verticalLayout.addWidget(self.checkBox)
+
+
+        self.gridLayout.addLayout(self.verticalLayout, 0, 1, 1, 1)
+
         self.verticalLayout_2 = QVBoxLayout()
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.label_5 = QLabel(self.centralwidget)
@@ -69,56 +109,10 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
 
-        self.verticalLayout = QVBoxLayout()
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.plainTextEdit = QPlainTextEdit(self.centralwidget)
-        self.plainTextEdit.setObjectName(u"plainTextEdit")
-        self.plainTextEdit.setMinimumSize(QSize(139, 28))
-        self.plainTextEdit.setMaximumSize(QSize(16777215, 28))
-        self.plainTextEdit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.plainTextEdit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-
-        self.verticalLayout.addWidget(self.plainTextEdit)
-
-        self.plainTextEdit_2 = QPlainTextEdit(self.centralwidget)
-        self.plainTextEdit_2.setObjectName(u"plainTextEdit_2")
-        self.plainTextEdit_2.setMaximumSize(QSize(16777215, 28))
-        self.plainTextEdit_2.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-
-        self.verticalLayout.addWidget(self.plainTextEdit_2)
-
-        self.spinBox = QSpinBox(self.centralwidget)
-        self.spinBox.setObjectName(u"spinBox")
-
-        self.verticalLayout.addWidget(self.spinBox)
-
-        self.spinBox_2 = QSpinBox(self.centralwidget)
-        self.spinBox_2.setObjectName(u"spinBox_2")
-
-        self.verticalLayout.addWidget(self.spinBox_2)
-
-        self.doubleSpinBox = QDoubleSpinBox(self.centralwidget)
-        self.doubleSpinBox.setObjectName(u"doubleSpinBox")
-
-        self.verticalLayout.addWidget(self.doubleSpinBox)
-
-        self.doubleSpinBox_2 = QDoubleSpinBox(self.centralwidget)
-        self.doubleSpinBox_2.setObjectName(u"doubleSpinBox_2")
-
-        self.verticalLayout.addWidget(self.doubleSpinBox_2)
-
-        self.checkBox = QCheckBox(self.centralwidget)
-        self.checkBox.setObjectName(u"checkBox")
-
-        self.verticalLayout.addWidget(self.checkBox)
-
-
-        self.gridLayout.addLayout(self.verticalLayout, 0, 1, 1, 1)
-
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 340, 21))
+        self.menubar.setGeometry(QRect(0, 0, 517, 21))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -131,6 +125,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Add Bus Stop", None))
+        self.checkBox.setText("")
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"Stop Name", None))
         self.label_10.setText(QCoreApplication.translate("MainWindow", u"English Display", None))
         self.label_8.setText(QCoreApplication.translate("MainWindow", u"Chi Recording Seconds", None))
@@ -138,6 +133,5 @@ class Ui_MainWindow(object):
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Outbound Section Fare", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Inbound Section Fare", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Autoskip?", None))
-        self.checkBox.setText("")
     # retranslateUi
 

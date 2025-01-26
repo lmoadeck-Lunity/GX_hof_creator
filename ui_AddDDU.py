@@ -16,14 +16,14 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QDoubleSpinBox, QGridLayout, QLabel,
-    QMainWindow, QMenuBar, QPlainTextEdit, QSizePolicy,
+    QLineEdit, QMainWindow, QMenuBar, QSizePolicy,
     QSpinBox, QStatusBar, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(319, 272)
+        MainWindow.resize(319, 283)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
@@ -70,23 +70,20 @@ class Ui_MainWindow(object):
 
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.plainTextEdit = QPlainTextEdit(self.centralwidget)
-        self.plainTextEdit.setObjectName(u"plainTextEdit")
-        self.plainTextEdit.setMaximumSize(QSize(139, 28))
+        self.lineEdit = QLineEdit(self.centralwidget)
+        self.lineEdit.setObjectName(u"lineEdit")
 
-        self.verticalLayout.addWidget(self.plainTextEdit)
+        self.verticalLayout.addWidget(self.lineEdit)
 
-        self.plainTextEdit_2 = QPlainTextEdit(self.centralwidget)
-        self.plainTextEdit_2.setObjectName(u"plainTextEdit_2")
-        self.plainTextEdit_2.setMaximumSize(QSize(139, 28))
+        self.lineEdit_2 = QLineEdit(self.centralwidget)
+        self.lineEdit_2.setObjectName(u"lineEdit_2")
 
-        self.verticalLayout.addWidget(self.plainTextEdit_2)
+        self.verticalLayout.addWidget(self.lineEdit_2)
 
-        self.plainTextEdit_3 = QPlainTextEdit(self.centralwidget)
-        self.plainTextEdit_3.setObjectName(u"plainTextEdit_3")
-        self.plainTextEdit_3.setMaximumSize(QSize(139, 28))
+        self.lineEdit_3 = QLineEdit(self.centralwidget)
+        self.lineEdit_3.setObjectName(u"lineEdit_3")
 
-        self.verticalLayout.addWidget(self.plainTextEdit_3)
+        self.verticalLayout.addWidget(self.lineEdit_3)
 
         self.doubleSpinBox = QDoubleSpinBox(self.centralwidget)
         self.doubleSpinBox.setObjectName(u"doubleSpinBox")

@@ -15,8 +15,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QGridLayout, QLabel, QMainWindow,
-    QMenuBar, QPlainTextEdit, QSizePolicy, QSpacerItem,
+from PySide6.QtWidgets import (QApplication, QGridLayout, QLabel, QLineEdit,
+    QMainWindow, QMenuBar, QSizePolicy, QSpacerItem,
     QStatusBar, QToolButton, QWidget)
 
 class Ui_MainWindow(object):
@@ -61,32 +61,24 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addItem(self.horizontalSpacer_2, 1, 4, 1, 1)
 
-        self.plainTextEdit_2 = QPlainTextEdit(self.centralwidget)
-        self.plainTextEdit_2.setObjectName(u"plainTextEdit_2")
-        self.plainTextEdit_2.setMinimumSize(QSize(237, 20))
-        self.plainTextEdit_2.setMaximumSize(QSize(16777215, 20))
-        self.plainTextEdit_2.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.plainTextEdit_2.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-
-        self.gridLayout.addWidget(self.plainTextEdit_2, 2, 2, 1, 1)
-
         self.horizontalSpacer = QSpacerItem(28, 17, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
 
         self.gridLayout.addItem(self.horizontalSpacer, 1, 0, 1, 1)
-
-        self.plainTextEdit_3 = QPlainTextEdit(self.centralwidget)
-        self.plainTextEdit_3.setObjectName(u"plainTextEdit_3")
-        self.plainTextEdit_3.setMinimumSize(QSize(237, 20))
-        self.plainTextEdit_3.setMaximumSize(QSize(16777215, 20))
-        self.plainTextEdit_3.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.plainTextEdit_3.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-
-        self.gridLayout.addWidget(self.plainTextEdit_3, 1, 2, 1, 1)
 
         self.toolButton = QToolButton(self.centralwidget)
         self.toolButton.setObjectName(u"toolButton")
 
         self.gridLayout.addWidget(self.toolButton, 1, 3, 1, 1)
+
+        self.lineEdit = QLineEdit(self.centralwidget)
+        self.lineEdit.setObjectName(u"lineEdit")
+
+        self.gridLayout.addWidget(self.lineEdit, 1, 2, 1, 1)
+
+        self.lineEdit_2 = QLineEdit(self.centralwidget)
+        self.lineEdit_2.setObjectName(u"lineEdit_2")
+
+        self.gridLayout.addWidget(self.lineEdit_2, 2, 2, 1, 1)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)

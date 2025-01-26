@@ -96,7 +96,7 @@ class Main(QMainWindow):
     # cross_method_dataqueue = ObservableList([None for _ in range(50)], callback=None)
     # head_index = 0
     # tail_index = 0
-    
+    cur_instance = None
     cross_method_datum = deque([Signal(int) for _ in range(1)], maxlen=50)  
     # def __init__(self, parent=None):
     #     super().__init__(parent)
@@ -140,16 +140,16 @@ class Main(QMainWindow):
             super().__init__(parent)
             self.ui = PrefWin_UI()
             self.ui.setupUi(self)
-            self.ui.plainTextEdit_3.setPlainText(Main.export_path)
-            self.ui.plainTextEdit_3.textChanged.connect(self.set_path)
+            self.ui.lineEdit.setText(Main.export_path)
+            self.ui.lineEdit.textChanged.connect(self.set_path)
             self.ui.toolButton.clicked.connect(self.fileexplorer)
         def closewindow(self):
             self.close()
         def fileexplorer(self):
             Main.export_path = QFileDialog.getExistingDirectory(self, 'Select Directory', 'C:\\')
-            self.ui.plainTextEdit_3.setPlainText(Main.export_path)
+            self.ui.lineEdit.setText(Main.export_path)
         def set_path(self):
-            Main.export_path = self.ui.plainTextEdit_3.toPlainText()
+            Main.export_path = self.ui.lineEdit.text()
             
     class Entrypoint(QMainWindow):
         def __init__(self, parent=None):
@@ -276,13 +276,17 @@ class Main(QMainWindow):
                 4: (Main.hof_class.infosystem, self.ui.listWidget_2)
             }
             Main.raise_unimplemented()
-        @Slot(None, int) #type: ignore
-        def update_listviews(self,index:int) -> int:
-            print("hi", index)
-            self.ui.listWidget_3.item(index).setText(Main.hof_class.stopreporter[index].name)
-            self.ui.listWidget_4.item(index).setText(Main.hof_class.ddu[index].RTNO)
-            self.ui.listWidget_5.item(index).setText(ericcode(Main.hof_class.termini[index].eric).retstr())
-            self.ui.listWidget_2.item(index).setText(Main.hof_class.infosystem[index].route)
+        @Slot(None, int,int) #type: ignore
+        def update_listviews(self,index:int,func_in:int) -> int:
+            dct = {
+                1: lambda: self.ui.listWidget_3.item(index).setText(Main.hof_class.stopreporter[index].name), # Stopreporter
+                2: lambda: self.ui.listWidget_4.item(index).setText(Main.hof_class.ddu[index].RTNO), # DDU
+                3: lambda: self.ui.listWidget_5.item(index).setText(ericcode(Main.hof_class.termini[index].eric).retstr()), # Termini
+                4: lambda: self.ui.listWidget_2.item(index).setText(Main.hof_class.infosystem[index].route) # Infosystem
+            }
+            
+            # Execute the functions
+            dct[func_in]()
             return 1
             
 
@@ -395,19 +399,20 @@ class Main(QMainWindow):
     
 
     class AddBusStop(QMainWindow):
-        sig = Signal(int)
+        sig = Signal(int,int)
         def __init__(self, parent=None,name:str = "",engdisp:str="",chisec:int=0,engsec:int=0,osf:float=-1.0,isf:float=-1.0,autoskip:bool=False,curindex:int=0):
             super().__init__(parent)
             self.curindex = curindex
             self.ui = AddBusStop_UI()
             self.ui.setupUi(self)
-            self.ui.plainTextEdit.setPlainText(name)
-            self.ui.plainTextEdit_2.setPlainText(engdisp)
+            self.ui.lineEdit.setText(name)
+            self.ui.lineEdit_2.setText(engdisp)
             self.ui.spinBox.setValue(chisec)
             self.ui.spinBox_2.setValue(engsec)
             self.ui.doubleSpinBox.setValue(osf)
             self.ui.doubleSpinBox_2.setValue(isf)
             self.ui.checkBox.setChecked(autoskip)
+            self.hofview = Main.opened_windows[0]
         def get_bs(self):
             Main.raise_unimplemented()
         def closeEvent(self,event):
@@ -424,28 +429,30 @@ class Main(QMainWindow):
             # lst = [self.ui.plainTextEdit.document().isModified(), self.ui.plainTextEdit_2.document().isModified(), self.ui.spinBox.value() != 0, self.ui.spinBox_2.value() != 0, self.ui.doubleSpinBox.value() != 0.0, self.ui.doubleSpinBox_2.value() != 0.0]
 
             # if 
-            Main.hof_class.stopreporter[self.curindex].name = self.ui.plainTextEdit.toPlainText()
-            Main.hof_class.stopreporter[self.curindex].EngDisplay = self.ui.plainTextEdit_2.toPlainText()
+            Main.hof_class.stopreporter[self.curindex].name = self.ui.lineEdit.text()
+            Main.hof_class.stopreporter[self.curindex].EngDisplay = self.ui.lineEdit_2.text()
             Main.hof_class.stopreporter[self.curindex].ChiSeconds = self.ui.spinBox.value()
             Main.hof_class.stopreporter[self.curindex].EngSeconds = self.ui.spinBox_2.value()
             Main.hof_class.stopreporter[self.curindex].Outbound_sectionfare = self.ui.doubleSpinBox.value()
             Main.hof_class.stopreporter[self.curindex].Inbound_sectionfare = self.ui.doubleSpinBox_2.value()
-            self.sig.emit(self.curindex)
+            self.sig.connect(self.hofview.update_listviews)
+            self.sig.emit(self.curindex,1)
             # Main.HOFView().ui.listWidget_3.item(self.curindex).setText(self.ui.plainTextEdit.toPlainText())
             # item.setText(Main.hof_class.stopreporter[self.curindex].name)
             event.accept() # let the window close
 
     class AddDDU(QMainWindow):
-        sig = Signal(int)
+        sig = Signal(int,int)
         def __init__(self, parent=None,RTNO:str="",OutDir:str="",InDir:str="",OutSecFare:float=-1.0,InSecFare:float=-1.0,Out_SectionCount:int=0,In_SectionCount:int=0,curindex:int=0):
             super().__init__(parent)
             self.curindex = curindex
             # self.sig = Signal(int)
+            self.hofview = Main.opened_windows[0]
             self.ui = AddDDU_UI()
             self.ui.setupUi(self)
-            self.ui.plainTextEdit.setPlainText(RTNO)
-            self.ui.plainTextEdit_2.setPlainText(OutDir)
-            self.ui.plainTextEdit_3.setPlainText(InDir)
+            self.ui.lineEdit.setText(RTNO)
+            self.ui.lineEdit_2.setText(OutDir)
+            self.ui.lineEdit_3.setText(InDir)
             self.ui.doubleSpinBox.setValue(OutSecFare)
             self.ui.doubleSpinBox_2.setValue(InSecFare)
             self.ui.spinBox.setValue(Out_SectionCount)
@@ -455,16 +462,16 @@ class Main(QMainWindow):
             # lst = [self.ui.plainTextEdit.document().isModified(), self.ui.plainTextEdit_2.document().isModified(), self.ui.plainTextEdit_3.document().isModified(), self.ui.doubleSpinBox.value() != 0.0, self.ui.doubleSpinBox_2.value() != 0.0, self.ui.spinBox.value() != 0, self.ui.spinBox_2.value() != 0]
             # if Main.maybeSave(lst):
 
-            Main.hof_class.ddu[self.curindex].RTNO = self.ui.plainTextEdit.toPlainText()
-            Main.hof_class.ddu[self.curindex].Outbound_dir = self.ui.plainTextEdit_2.toPlainText()
-            Main.hof_class.ddu[self.curindex].Inbound_dir = self.ui.plainTextEdit_3.toPlainText()
+            Main.hof_class.ddu[self.curindex].RTNO = self.ui.lineEdit.text()
+            Main.hof_class.ddu[self.curindex].Outbound_dir = self.ui.lineEdit_2.text()
+            Main.hof_class.ddu[self.curindex].Inbound_dir = self.ui.lineEdit_3.text()
             Main.hof_class.ddu[self.curindex].Outbound_price = self.ui.doubleSpinBox.value()
             Main.hof_class.ddu[self.curindex].Inbound_price = self.ui.doubleSpinBox_2.value()
             Main.hof_class.ddu[self.curindex].sectiontimes_Y = self.ui.spinBox.value()
             Main.hof_class.ddu[self.curindex].sectiontimes_Z = self.ui.spinBox_2.value()
             
-            self.sig.connect(Main.HOFView().update_listviews)
-            self.sig.emit(self.curindex)
+            self.sig.connect(self.hofview.update_listviews)
+            self.sig.emit(self.curindex,2)
             event.accept()
             # else:
             #     event.ignore()
@@ -473,32 +480,39 @@ class Main(QMainWindow):
 
 
     class AddRouteEntry(QMainWindow):
+        sig = Signal(int,int)
         def __init__(self, parent=None,single_dual:bool=False,route:str="",Outbound_dir:str="",Inbound_dir:str="",curindex:int=0):
             super().__init__(parent)
             self.ui = AddRouteEntry_UI()
             self.ui.setupUi(self)
             self.curindex = curindex
-            self.ui.plainTextEdit.setPlainText(route)
-            self.ui.plainTextEdit_2.setPlainText(Outbound_dir)
-            self.ui.plainTextEdit_3.setPlainText(Inbound_dir)
+            self.ui.lineEdit.setText(route)
+            self.ui.lineEdit_2.setText(Outbound_dir)
+            self.ui.lineEdit_3.setText(Inbound_dir)
             self.ui.checkBox.setChecked(single_dual)
         
         def closeEvent(self,event):
-            Main.hof_class.infosystem[self.curindex].route = self.ui.plainTextEdit.toPlainText()
-            Main.hof_class.infosystem[self.curindex].direction1 = self.ui.plainTextEdit_2.toPlainText()
-            Main.hof_class.infosystem[self.curindex].direction2 = self.ui.plainTextEdit_3.toPlainText()
+            Main.hof_class.infosystem[self.curindex].route = self.ui.lineEdit.text()
+            Main.hof_class.infosystem[self.curindex].direction1 = self.ui.lineEdit_2.text()
+            Main.hof_class.infosystem[self.curindex].direction2 = self.ui.lineEdit_3.text()
+            self.sig.connect(Main.opened_windows[0].update_listviews)
+            self.sig.emit(self.curindex,4)
             event.accept()
+
 
             
 
     class AddTermini(QMainWindow):
+        sig = Signal(int,int)
         def __init__(self, parent=None,eric:str="", Destination:str="",busfull:str="",disps:list=[],curindex:int=0):
             super().__init__(parent)
             self.ui = AddTermini_UI()
             self.ui.setupUi(self)
-            self.ui.plainTextEdit.setPlainText(eric)
-            self.ui.plainTextEdit_2.setPlainText(Destination)
-            self.ui.plainTextEdit_3.setPlainText(busfull)
+            self.ui.lineEdit.setText(eric)
+            self.ui.lineEdit_2.setText(Destination)
+            self.ui.lineEdit_3.setText(busfull)
+            self.curindex = curindex
+            
             # self.ui.tableWidget.setItem
             for i in range(len(disps)):
                 self.ui.tableWidget.setItem(i, 0, QTableWidgetItem(disps[i]))
@@ -508,6 +522,18 @@ class Main(QMainWindow):
             self.ui.tableWidget.clear()
             for i in range(4,4-len(files),-1):
                 self.ui.tableWidget.setItem(i, 0, QTableWidgetItem(files[0][4-i]))
+
+        def closeEvent(self,event):
+            Main.hof_class.termini[self.curindex].eric = self.ui.lineEdit.text()
+            Main.hof_class.termini[self.curindex].destination = self.ui.lineEdit_2.text()
+            Main.hof_class.termini[self.curindex].busfull = self.ui.lineEdit_3.text()
+            disps = []
+            for i in range(4):
+                disps.append(self.ui.tableWidget.item(i,0).text()) #type: ignore
+            Main.hof_class.termini[self.curindex].flip = disps
+            self.sig.connect(Main.opened_windows[0].update_listviews)
+            self.sig.emit(self.curindex,3)
+            event.accept()
 
         
 
