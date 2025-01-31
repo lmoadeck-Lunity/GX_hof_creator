@@ -18,6 +18,7 @@ from ui_AddRouteEntry import Ui_MainWindow as AddRouteEntry_UI
 from ui_AddTermini import Ui_MainWindow as AddTermini_UI
 from ui_PrefWin import Ui_MainWindow as PrefWin_UI
 import multiprocessing
+import copy
 import tkinter as tk
 from HOF import HOF_Hanover as HOF_KMBHan
 from HOF import ericcode
@@ -207,16 +208,29 @@ class Main(QMainWindow):
             #     self.ui.listWidget_2.addItem(i.route) #infosystem
             self.ui.listWidget_3.addItems([i.name for i in Main.hof_class.stopreporter])
             self.ui.listWidget_4.addItems([i.RTNO for i in Main.hof_class.ddu])
-            self.ui.listWidget_5.addItems([ericcode(i.eric).retstr() for i in Main.hof_class.termini])
+            self.ui.listWidget_5.addItems([i.destination for i in Main.hof_class.termini])
             self.ui.listWidget_2.addItems([i.route for i in Main.hof_class.infosystem])
+            self.ui.actionExport_HOF.triggered.connect(self.export_hof)
             #----Termini, DDU, Stopreporter Part----#
             self.ui.listWidget_3.doubleClicked.connect(self.open_bs_lw3)
             self.ui.listWidget_4.doubleClicked.connect(self.open_ddu)
             self.ui.listWidget_5.doubleClicked.connect(self.open_termini)
+            
             self.ui.pushButton_3.clicked.connect(lambda: self.add_stuff(1))
             self.ui.pushButton_7.clicked.connect(lambda: self.add_stuff(2))
             self.ui.pushButton_14.clicked.connect(lambda: self.add_stuff(3))
-            self.ui.pushButton_9.clicked.connect(lambda: self.add_stuff(4))
+            
+            self.ui.pushButton_5.clicked.connect(lambda: self.delete_stuff(1))
+            self.ui.pushButton_8.clicked.connect(lambda: self.delete_stuff(2))
+            self.ui.pushButton_15.clicked.connect(lambda: self.delete_stuff(3))
+
+            self.ui.pushButton_11.clicked.connect(lambda: self.duplicate_stuff(1))
+            self.ui.pushButton_13.clicked.connect(lambda: self.duplicate_stuff(2))
+            self.ui.pushButton_16.clicked.connect(lambda: self.duplicate_stuff(3))
+
+            self.ui.pushButton_23.clicked.connect(lambda: self.sort_stuff(1))
+            self.ui.pushButton_22.clicked.connect(lambda: self.sort_stuff(2))
+            self.ui.pushButton_21.clicked.connect(lambda: self.sort_stuff(3))
 
             #----Infosystem Part----#
             self.ui.listWidget_2.itemSelectionChanged.connect(self.get_bsl)
@@ -224,7 +238,16 @@ class Main(QMainWindow):
             self.ui.pushButton.clicked.connect(self.dirchange_Y)
             self.ui.pushButton_2.clicked.connect(self.dirchange_Z)
             self.ui.listWidget.doubleClicked.connect(self.open_bs)
-            
+            self.ui.listWidget_2.doubleClicked.connect(self.open_rt)
+            self.ui.pushButton_9.clicked.connect(lambda: self.add_stuff(4))
+            self.ui.pushButton_10.clicked.connect(lambda: self.delete_stuff(4))
+            self.ui.pushButton_12.clicked.connect(lambda: self.duplicate_stuff(4))
+            self.ui.pushButton_4.clicked.connect(self.add_bs_from_sel)
+            self.ui.pushButton_6.clicked.connect(self.del_bs_from_sel)
+            self.ui.pushButton_20.clicked.connect(self.change_bs_FromSel)
+            self.ui.toolButton_4.clicked.connect(self.bsl_goup)
+            self.ui.toolButton_3.clicked.connect(self.bsl_godown)
+            # self.ui.pushButton_5
             #----Ctrl+S Shortcut----#
             self.shortcut = QShortcut(QKeySequence("Ctrl+S"), self)
             self.shortcut.activated.connect(self.save)
@@ -238,7 +261,7 @@ class Main(QMainWindow):
             if stuff == 1:
                 lenth = len(Main.hof_class.stopreporter)
                 Main.hof_class.add_stopreporter(f"NS{lenth}", "New Stop", 0, 0, -1.0, -1.0)
-                Main.opened_windows.append(Main.AddBusStop(None,f"NS{lenth}", "New Stop", 0, 0, -1.0, -1.0, False,curindex=lenth))
+                Main.opened_windows.append(Main.AddBusStop(None,f"NS{lenth}", "New Stop", 0, 0, -1.0, -1.0,curindex=lenth))
                 Main.opened_windows[-1].show()
                 dct[stuff][1].addItem(f"NS{lenth}")
             elif stuff == 2:
@@ -256,17 +279,67 @@ class Main(QMainWindow):
             elif stuff == 4:
                 lenth = len(Main.hof_class.infosystem)
                 Main.hof_class.add_infosystem(False, f"R{lenth}", "Outbound", "Inbound", [], [])
-                Main.opened_windows.append(Main.AddRouteEntry(None))
+                Main.opened_windows.append(Main.AddRouteEntry(None,False,f"R{lenth}", "Outbound", "Inbound",curindex=lenth))
                 dct[stuff][1].addItem(f"R{lenth}")
             
-        def duplicate_stuff(self,stuff:int):
+        def duplicate_stuff(self, stuff: int):
             dct = {
                 1: (Main.hof_class.stopreporter, self.ui.listWidget_3),
                 2: (Main.hof_class.ddu, self.ui.listWidget_4),
                 3: (Main.hof_class.termini, self.ui.listWidget_5),
                 4: (Main.hof_class.infosystem, self.ui.listWidget_2)
             }
-            Main.raise_unimplemented()
+            if stuff == 1:
+                ite = self.ui.listWidget_3.currentIndex()
+                index = ite.row()
+                original = Main.hof_class.stopreporter[index]
+                new_item = copy.deepcopy(original)
+                Main.hof_class.stopreporter.insert(index, new_item)
+                self.ui.listWidget_3.insertItem(index, new_item.name)
+            elif stuff == 2:
+                ite = self.ui.listWidget_4.currentIndex()
+                index = ite.row()
+                original = Main.hof_class.ddu[index]
+                new_item = copy.deepcopy(original)
+                Main.hof_class.ddu.insert(index, new_item)
+                self.ui.listWidget_4.insertItem(index, new_item.RTNO)
+            elif stuff == 3:
+                ite = self.ui.listWidget_5.currentIndex()
+                index = ite.row()
+                original = Main.hof_class.termini[index]
+                new_item = copy.deepcopy(original)
+                Main.hof_class.termini.insert(index, new_item)
+                self.ui.listWidget_5.insertItem(index, new_item.eric)
+            elif stuff == 4:
+                ite = self.ui.listWidget_2.currentIndex()
+                index = ite.row()
+                original = Main.hof_class.infosystem[index]
+                new_item = copy.deepcopy(original)
+                Main.hof_class.infosystem.insert(index, new_item)
+                self.ui.listWidget_2.insertItem(index, new_item.route)
+
+            # elif stuff == 2:
+            #     ite = self.ui.listWidget_4.currentIndex()
+            #     index = ite.row()
+            #     original = Main.hof_class.ddu[index]
+            #     new_item = type(original)(**original.__dict__)  # Create a new instance with the same attributes
+            #     Main.hof_class.ddu.insert(index, new_item)
+            #     self.ui.listWidget_4.insertItem(index, new_item.RTNO)
+            # elif stuff == 3:
+            #     ite = self.ui.listWidget_5.currentIndex()
+            #     index = ite.row()
+            #     original = Main.hof_class.termini[index]
+            #     new_item = type(original)(**original.__dict__)  # Create a new instance with the same attributes
+            #     Main.hof_class.termini.insert(index, new_item)
+            #     self.ui.listWidget_5.insertItem(index, new_item.eric)
+            # elif stuff == 4:
+            #     ite = self.ui.listWidget_2.currentIndex()
+            #     index = ite.row()
+            #     original = Main.hof_class.infosystem[index]
+            #     new_item = type(original)(**original.__dict__)  # Create a new instance with the same attributes
+            #     Main.hof_class.infosystem.insert(index, new_item)
+            #     self.ui.listWidget_2.insertItem(index, new_item.route)
+
 
         def delete_stuff(self,stuff:int):
             dct = {
@@ -275,23 +348,160 @@ class Main(QMainWindow):
                 3: (Main.hof_class.termini, self.ui.listWidget_5),
                 4: (Main.hof_class.infosystem, self.ui.listWidget_2)
             }
-            Main.raise_unimplemented()
+            if stuff == 1:
+                ite = self.ui.listWidget_3.currentIndex()
+                index = ite.row()
+                Main.hof_class.stopreporter.pop(index)
+                self.ui.listWidget_3.takeItem(index)
+            elif stuff == 2:
+                ite = self.ui.listWidget_4.currentIndex()
+                index = ite.row()
+                Main.hof_class.ddu.pop(index)
+                self.ui.listWidget_4.takeItem(index)
+            elif stuff == 3:
+                ite = self.ui.listWidget_5.currentIndex()
+                index = ite.row()
+                Main.hof_class.termini.pop(index)
+                self.ui.listWidget_5.takeItem(index)
+            elif stuff == 4:
+                ite = self.ui.listWidget_2.currentIndex()
+                index = ite.row()
+                Main.hof_class.infosystem.pop(index)
+                self.ui.listWidget_2.takeItem(index)
+
+        def sort_stuff(self,stuff:int) -> None:
+            dct = {
+                1: (Main.hof_class.stopreporter, self.ui.listWidget_3),
+                2: (Main.hof_class.ddu, self.ui.listWidget_4),
+                3: (Main.hof_class.termini, self.ui.listWidget_5),
+                4: (Main.hof_class.infosystem, self.ui.listWidget_2)
+            }
+            if stuff == 1:
+                Main.hof_class.stopreporter = sorted(Main.hof_class.stopreporter, key=lambda x: x.name)
+                self.ui.listWidget_3.clear()
+                self.ui.listWidget_3.addItems([i.name for i in Main.hof_class.stopreporter])
+            elif stuff == 2:
+                Main.hof_class.ddu = sorted(Main.hof_class.ddu, key=lambda x: x.RTNO)
+                self.ui.listWidget_4.clear()
+                self.ui.listWidget_4.addItems([i.RTNO for i in Main.hof_class.ddu])
+            elif stuff == 3:
+                Main.hof_class.termini = sorted(Main.hof_class.termini, key=lambda x: x.eric)
+                self.ui.listWidget_5.clear()
+                self.ui.listWidget_5.addItems([i.destination for i in Main.hof_class.termini])
+            elif stuff == 4:
+                Main.hof_class.infosystem = sorted(Main.hof_class.infosystem, key=lambda x: x.route)
+                self.ui.listWidget_2.clear()
+                self.ui.listWidget_2.addItems([i.route for i in Main.hof_class.infosystem])
+
+
         @Slot(None, int,int) #type: ignore
         def update_listviews(self,index:int,func_in:int) -> int:
             dct = {
                 1: lambda: self.ui.listWidget_3.item(index).setText(Main.hof_class.stopreporter[index].name), # Stopreporter
                 2: lambda: self.ui.listWidget_4.item(index).setText(Main.hof_class.ddu[index].RTNO), # DDU
-                3: lambda: self.ui.listWidget_5.item(index).setText(ericcode(Main.hof_class.termini[index].eric).retstr()), # Termini
+                3: lambda: self.ui.listWidget_5.item(index).setText(Main.hof_class.termini[index].destination), # Termini
                 4: lambda: self.ui.listWidget_2.item(index).setText(Main.hof_class.infosystem[index].route) # Infosystem
             }
             
             # Execute the functions
             dct[func_in]()
             return 1
+        
+        def del_bs_from_sel(self):
+            item = self.ui.listWidget.currentIndex()
+            index = item.row()
+            routesel = self.ui.listWidget_2.currentIndex()
+            routeindex = routesel.row()
+            current_dir = Main.bus_rt_direction
+            if current_dir == 1:
+                Main.hof_class.infosystem[routeindex].busstop_list1_class._busstops.pop(index)
+            else:
+                Main.hof_class.infosystem[routeindex].busstop_list2_class._busstops.pop(index)
+            self.ui.listWidget.takeItem(index)
             
+        def add_bs_from_sel(self):
+            item = self.ui.listWidget_3.currentIndex()
+            index = item.row()
+            routesel = self.ui.listWidget_2.currentIndex()
+            routeindex = routesel.row()
+            current_dir = Main.bus_rt_direction
+            if self.ui.checkBox.isChecked():
+                if current_dir == 1:
+                    Main.hof_class.infosystem[routeindex].busstop_list1_class._busstops.append(Main.hof_class.stopreporter[index].name)
+                    self.ui.listWidget.addItem(Main.hof_class.stopreporter[index].name)
+                else:
+                    Main.hof_class.infosystem[routeindex].busstop_list2_class._busstops.append(Main.hof_class.stopreporter[index].name)
+                    self.ui.listWidget.addItem(Main.hof_class.stopreporter[index].name)
+            else:
+                cur_bs = self.ui.listWidget.currentIndex()
+                cur_index = cur_bs.row()
+
+                if current_dir == 1:
+                    Main.hof_class.infosystem[routeindex].busstop_list1_class._busstops.insert(cur_index, Main.hof_class.stopreporter[index].name)
+                    self.ui.listWidget.insertItem(cur_index, Main.hof_class.stopreporter[index].name)
+                else:
+                    Main.hof_class.infosystem[routeindex].busstop_list2_class._busstops.insert(cur_index, Main.hof_class.stopreporter[index].name)
+                    self.ui.listWidget.insertItem(cur_index, Main.hof_class.stopreporter[index].name)
+
+        def bsl_goup(self):
+            item = self.ui.listWidget.currentIndex()
+            index = item.row()
+            print(item.data(), index)
+            if index > 0:
+                # self.ui.listWidget.item(index-1).setText(item.data())
+                temp = self.ui.listWidget.item(index-1).text()
+                cur = self.ui.listWidget.item(index).text()
+                self.ui.listWidget.item(index-1).setText(cur)
+                self.ui.listWidget.item(index).setText(temp)
+                temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index-1]
+                cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index]
+                Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index-1] = cur
+                Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index] = temp
+                self.ui.listWidget.setCurrentRow(index - 1)
+
+                # self.ui.listWidget.setCurrentRow(index - 1)
+                # self.ui.listWidget.takeItem(index)
+                # self.ui.listWidget.insertItem(index - 1, item.data())
+        def bsl_godown(self):
+            item = self.ui.listWidget.currentIndex()
+            index = item.row()
+            if index < self.ui.listWidget.count() - 1:
+                temp = self.ui.listWidget.item(index+1).text()
+                cur = self.ui.listWidget.item(index).text()
+                self.ui.listWidget.item(index+1).setText(cur)
+                self.ui.listWidget.item(index).setText(temp)
+                temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index+1]
+                cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index]
+                Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index+1] = cur
+                Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index] = temp
+                self.ui.listWidget.setCurrentRow(index + 1)
 
 
-
+        def change_bs_FromSel(self):
+            item = self.ui.listWidget.currentIndex()
+            index = item.row()
+            routesel = self.ui.listWidget_2.currentIndex()
+            routeindex = routesel.row()
+            current_dir = Main.bus_rt_direction
+            cur_bs = self.ui.listWidget_3.currentIndex()
+            cur_index = cur_bs.row()
+            if current_dir == 1:
+                Main.hof_class.infosystem[routeindex].busstop_list1_class._busstops[index] = Main.hof_class.stopreporter[cur_index].name
+            else:
+                Main.hof_class.infosystem[routeindex].busstop_list2_class._busstops[index] = Main.hof_class.stopreporter[cur_index].name
+            self.ui.listWidget.item(index).setText(Main.hof_class.stopreporter[cur_index].name)
+            # if current_dir == 1:
+            #     Main.hof_class.infosystem[routeindex].busstop_list1_class._busstops[index] = Main.hof_class.stopreporter[index].name
+            # else:
+            #     Main.hof_class.infosystem[routeindex].busstop_list2_class._busstops[index] = Main.hof_class.stopreporter[index].name
+            # self.ui.listWidget.item(index).setText(Main.hof_class.stopreporter[index].name)
+        def open_rt(self):
+            item = self.ui.listWidget_2.currentIndex()
+            index = item.row()
+            Main.opened_windows.append(Main.AddRouteEntry(None,False,Main.hof_class.infosystem[index].route, 
+                                                          Main.hof_class.infosystem[index].direction1,
+                                                          Main.hof_class.infosystem[index].direction2,curindex=index))
+            Main.opened_windows[-1].show()
         def open_bs(self):
             def search_bs(name: str, threads: int):
                 ls = Main.hof_class.stopreporter
@@ -317,7 +527,7 @@ class Main(QMainWindow):
                                                            stop.EngSeconds,
                                                            stop.Outbound_sectionfare if isinstance(stop.Outbound_sectionfare,float) else -1.0,
                                                            stop.Inbound_sectionfare if isinstance(stop.Inbound_sectionfare,float) else -1.0,
-                                                           True if stop.name[0] == "_" else False,curindex=actual_index))
+                                                           curindex=actual_index))
                 Main.opened_windows[-1].show()
             else:
                 QMessageBox.warning(self, "Error", f"Bus stop {index} not found.", QMessageBox.Ok) #type: ignore
@@ -332,7 +542,7 @@ class Main(QMainWindow):
                                 Main.hof_class.stopreporter[index].EngSeconds,
                                 Main.hof_class.stopreporter[index].Outbound_sectionfare if isinstance(Main.hof_class.stopreporter[index].Outbound_sectionfare,float) else -1.0, #type: ignore
                                 Main.hof_class.stopreporter[index].Inbound_sectionfare if isinstance(Main.hof_class.stopreporter[index].Inbound_sectionfare,float) else -1.0, #type: ignore
-                                True if Main.hof_class.stopreporter[index].name[0] == "_" else False,curindex=index)) #type: ignore
+                                curindex=index)) #type: ignore
             Main.opened_windows[-1].show()
 
 
@@ -377,9 +587,9 @@ class Main(QMainWindow):
             Main.bus_rt_direction = 1
             item =  self.ui.listWidget_2.currentIndex()
             index = item.row()
-            self.ui.tableWidget.setItem(0, 0, QTableWidgetItem(Main.hof_class.infosystem[index].route))
-            self.ui.tableWidget.setItem(0, 1, QTableWidgetItem(Main.hof_class.infosystem[index].direction1))
-            self.ui.tableWidget.setItem(0, 2, QTableWidgetItem(Main.hof_class.infosystem[index].direction2))
+            # self.ui.tableWidget.setItem(0, 0, QTableWidgetItem(Main.hof_class.infosystem[index].route))
+            # self.ui.tableWidget.setItem(0, 1, QTableWidgetItem(Main.hof_class.infosystem[index].direction1))
+            # self.ui.tableWidget.setItem(0, 2, QTableWidgetItem(Main.hof_class.infosystem[index].direction2))
             # return Main.hof_class.infosystem[index].busstoplist1 if Main.HOFView.bus_rt_direction == 1 else Main.hof_class.infosystem[index].busstoplist2
         def save(self):
             if Main.hofname == "":
@@ -392,7 +602,18 @@ class Main(QMainWindow):
             c = conn.cursor()
             c.execute("create table if not exists prefs (key text, value text)")
             c.execute("insert into prefs values ('export_path', ?)", (Main.export_path,))
+            conn.commit()
+            conn.close()
             QMessageBox.information(self, "Saved", "Saved to " + Main.export_path + "/" + Main.hofname + ".db")
+        
+        def export_hof(self):
+            if Main.hofname == "":
+                Main.hof_class.name = "Untitled"
+            if Main.export_path == "":
+                Main.export_path = Main().fileexplorer()
+            Main.hof_class.name = Main.hofname
+            Main.hof_class.export_hof(Main.export_path + "/" + Main.hofname + ".hof")
+            QMessageBox.information(self, "Saved", "Saved to " + Main.export_path + "/" + Main.hofname + ".hof")
         def closewindow(self):
             self.close()
 
@@ -400,7 +621,8 @@ class Main(QMainWindow):
 
     class AddBusStop(QMainWindow):
         sig = Signal(int,int)
-        def __init__(self, parent=None,name:str = "",engdisp:str="",chisec:int=0,engsec:int=0,osf:float=-1.0,isf:float=-1.0,autoskip:bool=False,curindex:int=0):
+        orig_autoskip = True
+        def __init__(self, parent=None,name:str = "",engdisp:str="",chisec:int=0,engsec:int=0,osf:float=-1.0,isf:float=-1.0,curindex:int=0):
             super().__init__(parent)
             self.curindex = curindex
             self.ui = AddBusStop_UI()
@@ -411,7 +633,8 @@ class Main(QMainWindow):
             self.ui.spinBox_2.setValue(engsec)
             self.ui.doubleSpinBox.setValue(osf)
             self.ui.doubleSpinBox_2.setValue(isf)
-            self.ui.checkBox.setChecked(autoskip)
+            self.ui.checkBox.setChecked(True if name[0] == "_" else False)
+            orig_autoskip = (True if name[0] == "_" else False)
             self.hofview = Main.opened_windows[0]
         def get_bs(self):
             Main.raise_unimplemented()
@@ -435,6 +658,10 @@ class Main(QMainWindow):
             Main.hof_class.stopreporter[self.curindex].EngSeconds = self.ui.spinBox_2.value()
             Main.hof_class.stopreporter[self.curindex].Outbound_sectionfare = self.ui.doubleSpinBox.value()
             Main.hof_class.stopreporter[self.curindex].Inbound_sectionfare = self.ui.doubleSpinBox_2.value()
+            Main.hof_class.stopreporter[self.curindex].comment = f"{self.ui.lineEdit_3.text()}|{self.ui.lineEdit_4.text()}"
+            if self.ui.checkBox.isChecked() and not self.orig_autoskip:
+                Main.hof_class.add_stopreporter(f"_{self.ui.lineEdit.text()}", self.ui.lineEdit_2.text(), self.ui.spinBox.value(), self.ui.spinBox_2.value(), self.ui.doubleSpinBox.value(), self.ui.doubleSpinBox_2.value())
+                Main.hof_class.stopreporter[-1].comment = f"{self.ui.lineEdit_3.text()}|{self.ui.lineEdit_4.text()}"
             self.sig.connect(self.hofview.update_listviews)
             self.sig.emit(self.curindex,1)
             # Main.HOFView().ui.listWidget_3.item(self.curindex).setText(self.ui.plainTextEdit.toPlainText())
@@ -529,7 +756,8 @@ class Main(QMainWindow):
             Main.hof_class.termini[self.curindex].busfull = self.ui.lineEdit_3.text()
             disps = []
             for i in range(4):
-                disps.append(self.ui.tableWidget.item(i,0).text()) #type: ignore
+                if self.ui.tableWidget.item(i,0) is not None:
+                    disps.append(self.ui.tableWidget.item(i,0).text()) #type: ignore
             Main.hof_class.termini[self.curindex].flip = disps
             self.sig.connect(Main.opened_windows[0].update_listviews)
             self.sig.emit(self.curindex,3)

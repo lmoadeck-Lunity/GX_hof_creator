@@ -703,10 +703,12 @@ $stoplist2
                 # hof_entry.infosystem[-1].busstop_list2_class.busstops = lines[end_idx_1:end_idx_2]
                 # i = end_idx_2
                 if len(self.infosystem) > 0 and self.infosystem[-1].route == lines[i + 2]:
+                    
                     startidx = i + 3
                     endidx = startidx + int(lines[i + 1])
+                    print(lines[startidx:endidx])
                     self.infosystem[-1].busstop_list2 = lines[startidx:endidx]
-                    self.infosystem[-1].trip2_class.Destination = lines[startidx:endidx][-2]
+                    self.infosystem[-1].trip2_class.Destination = lines[startidx:endidx][-2] if len(lines[startidx:endidx]) > 1 else ""
                     i = endidx
                 else:
                     busstop_count_1 = int(lines[i + 1])
