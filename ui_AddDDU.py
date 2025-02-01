@@ -97,11 +97,13 @@ class Ui_MainWindow(object):
 
         self.spinBox = QSpinBox(self.centralwidget)
         self.spinBox.setObjectName(u"spinBox")
+        self.spinBox.setMinimum(1)
 
         self.verticalLayout.addWidget(self.spinBox)
 
         self.spinBox_2 = QSpinBox(self.centralwidget)
         self.spinBox_2.setObjectName(u"spinBox_2")
+        self.spinBox_2.setMinimum(1)
 
         self.verticalLayout.addWidget(self.spinBox_2)
 

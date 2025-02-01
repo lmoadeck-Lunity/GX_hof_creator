@@ -612,122 +612,127 @@ $stoplist2
         print(f"Loaded from {filename}")
 
     def load_from_hof(self, filename: str) -> None:
-        hof_entry = HOF_Hanover()
-        with open(filename, 'r',encoding="utf-8") as f:
-            lines = [line.strip() for line in f]
-        i = 0
-        while i < len(lines):
-            line = lines[i]
-            if line == "[name]":
-                hof_entry.name = lines[i + 1]
-                i += 2
-            elif line == "[servicetrip]":
-                hof_entry.servicetrip = lines[i + 1]
-                i += 2
-            elif line == "[addterminus]":
-                # param = lines[i].replace("[addterminus]", "").strip()
-                hof_entry.add_terminus(
-                    False,
-                    lines[i + 1],
-                    lines[i + 2],
-                    lines[i + 3],
-                    lines[i + 4 : i + 8][::-1],
-                    lines[i + 8]
-                )
-                i += 9
-            elif line == "[addterminus_allexit]":
-                hof_entry.add_terminus(
-                    True,
-                    lines[i + 1],
-                    lines[i + 2],
-                    lines[i + 3],
-                    lines[i + 4 : i + 8][::-1],
-                    lines[i + 8]
-                )
-                i += 9
-            elif line == "[addbusstop]":
-                # print(len(lines[i + 1]), len(lines[i + 3]),lines[i + 3],lines[i + 1])
-                stop_name = lines[i + 1]
-                if len(stop_name) >= 5 and len(lines[i+3]) <= 5:
-                    # parse full stopreporter
-                    chi_sec, eng_sec = 0, 0
-                    time_parts = lines[i + 3].split()
-                    if len(time_parts) >= 1:
-                        chi_sec = int(time_parts[0])
-                    if len(time_parts) >= 2 and time_parts[1].isdigit():
-                        eng_sec = int(time_parts[1])
-                    inbound_price = -1.0
-                    if lines[i + 4].startswith('$'):
-                        inbound_price = float(lines[i + 4].lstrip('$'))
-                        # print(inbound_price)
-                    outbound_price = -1.0
-                    if lines[i + 5].startswith('$'):
-                        outbound_price = float(lines[i + 5].lstrip('$'))
-                        # print("op",outbound_price)
-                    hof_entry.add_stopreporter(
-                        stop_name,
+        try:
+            hof_entry = HOF_Hanover()
+            with open(filename, 'r',encoding="utf-8") as f:
+                lines = [line.strip() for line in f]
+            i = 0
+            while i < len(lines):
+                line = lines[i]
+                if line == "[name]":
+                    hof_entry.name = lines[i + 1]
+                    i += 2
+                elif line == "[servicetrip]":
+                    hof_entry.servicetrip = lines[i + 1]
+                    i += 2
+                elif line == "[addterminus]":
+                    # param = lines[i].replace("[addterminus]", "").strip()
+                    hof_entry.add_terminus(
+                        False,
+                        lines[i + 1],
                         lines[i + 2],
-                        chi_sec,
-                        eng_sec,
-                        inbound_price,
-                        outbound_price
+                        lines[i + 3],
+                        lines[i + 4 : i + 8][::-1],
+                        lines[i + 8]
                     )
+                    i += 9
+                elif line == "[addterminus_allexit]":
+                    hof_entry.add_terminus(
+                        True,
+                        lines[i + 1],
+                        lines[i + 2],
+                        lines[i + 3],
+                        lines[i + 4 : i + 8][::-1],
+                        lines[i + 8]
+                    )
+                    i += 9
+                elif line == "[addbusstop]":
+                    # print(len(lines[i + 1]), len(lines[i + 3]),lines[i + 3],lines[i + 1])
+                    stop_name = lines[i + 1]
+                    if len(stop_name) >= 5 and len(lines[i+3]) <= 5:
+                        # parse full stopreporter
+                        chi_sec, eng_sec = 0, 0
+                        time_parts = lines[i + 3].split()
+                        if len(time_parts) >= 1:
+                            chi_sec = int(time_parts[0])
+                        if len(time_parts) >= 2 and time_parts[1].isdigit():
+                            eng_sec = int(time_parts[1])
+                        inbound_price = -1.0
+                        if lines[i + 4].startswith('$'):
+                            inbound_price = float(lines[i + 4].lstrip('$'))
+                            # print(inbound_price)
+                        outbound_price = -1.0
+                        if lines[i + 5].startswith('$'):
+                            outbound_price = float(lines[i + 5].lstrip('$'))
+                            # print("op",outbound_price)
+                        hof_entry.add_stopreporter(
+                            stop_name,
+                            lines[i + 2],
+                            chi_sec,
+                            eng_sec,
+                            inbound_price,
+                            outbound_price
+                        )
+                        
+                        i += 7
+                    else:
+                        # parse DDU
+                        print(lines[i+2])
+                        print(lines[i+3])
+                        sectiontimes_Y = int(lines[i + 2][-1])
+                        sectiontimes_Z = int(lines[i + 3][-1])
+                        inbound_price = float(lines[i + 4].lstrip('$')) if lines[i + 4].startswith('$') else 0.0
+                        outbound_price = float(lines[i + 5].lstrip('$')) if lines[i + 5].startswith('$') else 0.0
+                        hof_entry.add_ddu(
+                            stop_name,
+                            lines[i + 2][:-1].strip(),
+                            lines[i + 3][:-1].strip(),
+                            inbound_price,
+                            outbound_price,
+                            sectiontimes_Y,
+                            sectiontimes_Z
+                        )
+                        i += 6
                     
-                    i += 7
-                else:
-                    # parse DDU
-                    print(lines[i+2])
-                    print(lines[i+3])
-                    sectiontimes_Y = int(lines[i + 2][-1])
-                    sectiontimes_Z = int(lines[i + 3][-1])
-                    inbound_price = float(lines[i + 4].lstrip('$')) if lines[i + 4].startswith('$') else 0.0
-                    outbound_price = float(lines[i + 5].lstrip('$')) if lines[i + 5].startswith('$') else 0.0
-                    hof_entry.add_ddu(
-                        stop_name,
-                        lines[i + 2][:-1].strip(),
-                        lines[i + 3][:-1].strip(),
-                        inbound_price,
-                        outbound_price,
-                        sectiontimes_Y,
-                        sectiontimes_Z
-                    )
-                    i += 6
-                
-            elif line == "[infosystem_busstop_list]":
-                # busstop_count_1 = int(lines[i + 1])
-                # busstop_count_2 = int(lines[i + 2])
-                # start_idx = i + 3
-                # end_idx_1 = start_idx + busstop_count_1
-                # end_idx_2 = end_idx_1 + busstop_count_2
-                # hof_entry.infosystem[-1].busstop_list1_class.busstops = lines[start_idx:end_idx_1]
-                # hof_entry.infosystem[-1].busstop_list2_class.busstops = lines[end_idx_1:end_idx_2]
-                # i = end_idx_2
-                if len(self.infosystem) > 0 and self.infosystem[-1].route == lines[i + 2]:
-                    
-                    startidx = i + 3
-                    endidx = startidx + int(lines[i + 1])
-                    print(lines[startidx:endidx])
-                    self.infosystem[-1].busstop_list2 = lines[startidx:endidx]
-                    self.infosystem[-1].trip2_class.Destination = lines[startidx:endidx][-2] if len(lines[startidx:endidx]) > 1 else ""
-                    i = endidx
-                else:
-                    busstop_count_1 = int(lines[i + 1])
-                    rtno = lines[i + 2]
-                    startidx = i + 3
-                    endidx = startidx + busstop_count_1
-                    bsl1 = lines[startidx:endidx]
-                    hof_entry.add_infosystem(
-                        single_or_dual_dir=True,
-                        route=rtno,
-                        dir1=bsl1[-2],
-                        dir2="",
-                        bustoplist1=bsl1,
-                        bustoplist2=[]
-                    )
-                    i = endidx
+                elif line == "[infosystem_busstop_list]":
+                    # busstop_count_1 = int(lines[i + 1])
+                    # busstop_count_2 = int(lines[i + 2])
+                    # start_idx = i + 3
+                    # end_idx_1 = start_idx + busstop_count_1
+                    # end_idx_2 = end_idx_1 + busstop_count_2
+                    # hof_entry.infosystem[-1].busstop_list1_class.busstops = lines[start_idx:end_idx_1]
+                    # hof_entry.infosystem[-1].busstop_list2_class.busstops = lines[end_idx_1:end_idx_2]
+                    # i = end_idx_2
+                    if len(self.infosystem) > 0 and self.infosystem[-1].route == lines[i + 2]:
+                        
+                        startidx = i + 3
+                        endidx = startidx + int(lines[i + 1])
+                        print(lines[startidx:endidx])
+                        self.infosystem[-1].busstop_list2 = lines[startidx:endidx]
+                        self.infosystem[-1].trip2_class.Destination = lines[startidx:endidx][-2] if len(lines[startidx:endidx]) > 1 else ""
+                        i = endidx
+                    else:
+                        busstop_count_1 = int(lines[i + 1])
+                        rtno = lines[i + 2]
+                        startidx = i + 3
+                        endidx = startidx + busstop_count_1
+                        bsl1 = lines[startidx:endidx]
+                        hof_entry.add_infosystem(
+                            single_or_dual_dir=True,
+                            route=rtno,
+                            dir1=bsl1[-2],
+                            dir2="",
+                            bustoplist1=bsl1,
+                            bustoplist2=[]
+                        )
+                        i = endidx
 
-            else:
-                i += 1
+                else:
+                    i += 1
+        except Exception as e:
+            print(e)
+            print(f"Error loading from {filename}")
+            return
         # print(hof_entry.showfullhof())
         self.name = hof_entry.name
         self.servicetrip = hof_entry.servicetrip

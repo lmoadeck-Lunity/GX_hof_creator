@@ -93,7 +93,7 @@ class Main(QMainWindow):
     opened_windows = []
     export_path = ""
     hofname = ""
-    bus_rt_direction = 1
+    # bus_rt_direction = 1
     # cross_method_dataqueue = ObservableList([None for _ in range(50)], callback=None)
     # head_index = 0
     # tail_index = 0
@@ -247,6 +247,8 @@ class Main(QMainWindow):
             self.ui.pushButton_20.clicked.connect(self.change_bs_FromSel)
             self.ui.toolButton_4.clicked.connect(self.bsl_goup)
             self.ui.toolButton_3.clicked.connect(self.bsl_godown)
+            self.ui.pushButton_18.clicked.connect(self.check_bsl_validity)
+            self.ui.pushButton_24.clicked.connect(self.check_all_bsl_validity)
             # self.ui.pushButton_5
             #----Ctrl+S Shortcut----#
             self.shortcut = QShortcut(QKeySequence("Ctrl+S"), self)
@@ -407,12 +409,56 @@ class Main(QMainWindow):
             dct[func_in]()
             return 1
         
+        def check_bsl_validity(self):
+            miss_bs = []
+            bsl = [i.name for i in Main.hof_class.stopreporter]
+            rt_sel = self.ui.listWidget_2.currentIndex()
+            rt_index = rt_sel.row()
+            if Main.hof_class.infosystem[rt_index].busstop_list1_class._busstops == []:
+                QMessageBox.warning(self, "Error", "Bus stop list 1 is empty.", QMessageBox.Ok) #type: ignore
+            elif Main.hof_class.infosystem[rt_index].busstop_list2_class._busstops == []:
+                QMessageBox.warning(self, "Error", "Bus stop list 2 is empty.", QMessageBox.Ok) #type: ignore
+            else:
+                for i in Main.hof_class.infosystem[rt_index].busstop_list1_class._busstops:
+                    if i not in bsl:
+                        miss_bs.append(i)
+                for i in Main.hof_class.infosystem[rt_index].busstop_list2_class._busstops:
+                    if i not in bsl:
+                        miss_bs.append(i)
+                if miss_bs != []:
+                    QMessageBox.warning(self, "Error", f"Bus stops {miss_bs} are not found in the bus stop list.", QMessageBox.Ok) #type: ignore
+                else:
+                    QMessageBox.information(self, "Success", "Bus stop list is valid.", QMessageBox.Ok) #type: ignore
+
+        def check_all_bsl_validity(self):
+            miss_bs = set()
+            bsl = [i.name for i in Main.hof_class.stopreporter]
+            for rt in Main.hof_class.infosystem:
+                for i in rt.busstop_list1_class._busstops:
+                    if i not in bsl:
+                        miss_bs.add(i)
+                for i in rt.busstop_list2_class._busstops:
+                    if i not in bsl:
+                        miss_bs.add(i)
+            if miss_bs != set():
+                QMessageBox.warning(self, "Error", f"Bus stops {miss_bs if len(miss_bs)< 20 else list(miss_bs)[:20]} are not found in the bus stop list. Do you want to add them?", QMessageBox.Ok | QMessageBox.Cancel) #type: ignore
+                if QMessageBox.Ok: #type: ignore
+                    self.add_bs_from_list(list(miss_bs))
+            else:
+                QMessageBox.information(self, "Success", "All bus stop lists are valid.", QMessageBox.Ok) #type: ignore
+        
+        def add_bs_from_list(self,bs:list[str]) -> None:
+            for i in bs:
+                Main.hof_class.add_stopreporter(f"{i}", "New Stop", 0, 0, -1.0, -1.0)
+                self.ui.listWidget_3.addItem(f"{i}")
+
+
         def del_bs_from_sel(self):
             item = self.ui.listWidget.currentIndex()
             index = item.row()
             routesel = self.ui.listWidget_2.currentIndex()
             routeindex = routesel.row()
-            current_dir = Main.bus_rt_direction
+            current_dir = self.bus_rt_direction
             if current_dir == 1:
                 Main.hof_class.infosystem[routeindex].busstop_list1_class._busstops.pop(index)
             else:
@@ -424,7 +470,7 @@ class Main(QMainWindow):
             index = item.row()
             routesel = self.ui.listWidget_2.currentIndex()
             routeindex = routesel.row()
-            current_dir = Main.bus_rt_direction
+            current_dir = self.bus_rt_direction
             if self.ui.checkBox.isChecked():
                 if current_dir == 1:
                     Main.hof_class.infosystem[routeindex].busstop_list1_class._busstops.append(Main.hof_class.stopreporter[index].name)
@@ -482,7 +528,7 @@ class Main(QMainWindow):
             index = item.row()
             routesel = self.ui.listWidget_2.currentIndex()
             routeindex = routesel.row()
-            current_dir = Main.bus_rt_direction
+            current_dir = self.bus_rt_direction
             cur_bs = self.ui.listWidget_3.currentIndex()
             cur_index = cur_bs.row()
             if current_dir == 1:
@@ -567,11 +613,11 @@ class Main(QMainWindow):
                                                        Main.hof_class.termini[index].flip,curindex=index))
             Main.opened_windows[-1].show()
         def dirchange_Y(self):
-            Main.bus_rt_direction = 1
+            self.bus_rt_direction = 1
             # print(self.bus_rt_direction)
             self.get_bsl()
         def dirchange_Z(self):
-            Main.bus_rt_direction = 2
+            self.bus_rt_direction = 2
             # print(self.bus_rt_direction)
             self.get_bsl()
         def get_bsl(self):
@@ -582,9 +628,9 @@ class Main(QMainWindow):
             # for i in (Main.hof_class.infosystem[index].db_export_bsl1 if Main.HOFView.bus_rt_direction == 1 else Main.hof_class.infosystem[index].db_export_bsl2):
             #     self.ui.listWidget.addItem(i)
             # print(Main.hof_class.infosystem[index].busstop_list1 if Main.bus_rt_direction == 1 else Main.hof_class.infosystem[index].busstop_list2_class.db_export)
-            self.ui.listWidget.addItems(Main.hof_class.infosystem[index].db_export_bsl1 if Main.bus_rt_direction == 1 else Main.hof_class.infosystem[index].busstop_list2_class.db_export)
+            self.ui.listWidget.addItems(Main.hof_class.infosystem[index].db_export_bsl1 if self.bus_rt_direction == 1 else Main.hof_class.infosystem[index].busstop_list2_class.db_export)
         def change_rt_info(self):
-            Main.bus_rt_direction = 1
+            self.bus_rt_direction = 1
             item =  self.ui.listWidget_2.currentIndex()
             index = item.row()
             # self.ui.tableWidget.setItem(0, 0, QTableWidgetItem(Main.hof_class.infosystem[index].route))
@@ -641,7 +687,7 @@ class Main(QMainWindow):
         def closeEvent(self,event):
 
 
-        
+            
             #             self._name = name
             # self._EngDisplay = EngDisplay
             # self._ChiSeconds = str(ChiSeconds).rjust(2,'0')
