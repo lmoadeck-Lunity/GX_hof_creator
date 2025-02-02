@@ -401,7 +401,7 @@ $stoplist2
             def db_export(self) -> list:
                 return self._busstops
             def __str__(self) -> str:
-                return HOF_Hanover.busstop_list_template.substitute(amount_of_stops=self._amount_of_stops, rtno=self._rtno, busstops=self.busstops)
+                return HOF_Hanover.busstop_list_template.substitute(amount_of_stops=self._amount_of_stops + 1, rtno=self._rtno, busstops=self.busstops)
             def __repr__(self) -> list[int | str | list[str]]:
                 return [self._amount_of_stops, self._rtno, self._busstops]
             def __iter__(self) -> list[str]:
@@ -649,6 +649,8 @@ $stoplist2
                 elif line == "[addbusstop]":
                     # print(len(lines[i + 1]), len(lines[i + 3]),lines[i + 3],lines[i + 1])
                     stop_name = lines[i + 1]
+                    if len(stop_name) < 1:
+                        continue
                     if len(stop_name) >= 5 and len(lines[i+3]) <= 5:
                         # parse full stopreporter
                         chi_sec, eng_sec = 0, 0

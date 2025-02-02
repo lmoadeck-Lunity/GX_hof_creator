@@ -2,9 +2,10 @@
 import sys
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QTableWidgetItem
-from PySide6.QtGui import QKeySequence,QShortcut
-from PySide6.QtCore import Signal, Slot
-
+from PySide6.QtGui import QCloseEvent, QKeySequence,QShortcut
+from PySide6.QtCore import Signal, Slot, QTimer
+from threading import Thread
+from time import sleep
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
@@ -194,6 +195,7 @@ class Main(QMainWindow):
 
     class HOFView(QMainWindow):
         bus_rt_direction = 1
+        closed = Signal()
         def __init__(self, parent=None):
             super().__init__(parent)
             self.ui = HOFView_Ui_MainWindow()
@@ -211,6 +213,12 @@ class Main(QMainWindow):
             self.ui.listWidget_5.addItems([i.destination for i in Main.hof_class.termini])
             self.ui.listWidget_2.addItems([i.route for i in Main.hof_class.infosystem])
             self.ui.actionExport_HOF.triggered.connect(self.export_hof)
+            self.ui.actionSave_to_DB.triggered.connect(self.save)
+            self.ui.actionPreferences.triggered.connect(self.open_pref)
+            #----                               ----#
+            # thread = Thread(target=self.update_listviews_every_3_minutes)
+            # thread.start()
+            self.update_listviews_every_3_minutes()
             #----Termini, DDU, Stopreporter Part----#
             self.ui.listWidget_3.doubleClicked.connect(self.open_bs_lw3)
             self.ui.listWidget_4.doubleClicked.connect(self.open_ddu)
@@ -343,6 +351,53 @@ class Main(QMainWindow):
             #     self.ui.listWidget_2.insertItem(index, new_item.route)
 
 
+        def open_pref(self):
+            Main.opened_windows.append(Main.PrefWin())
+            Main.opened_windows[-1].show()
+
+        
+        @Slot(None,bool) #type: ignore  
+        def update_listviews_every_3_minutes(self, TF:bool = False) -> None:
+            # self.shortcuta = QShortcut(QKeySequence("Ctrl+S"), self)
+        
+            # If TF is True, stop timer
+            if TF and hasattr(self, '_updateTimer'):
+                self._updateTimer.stop()
+                return
+            
+            # Initialize timer if doesn't exist
+            if not hasattr(self, '_updateTimer'):
+                self._updateTimer = QTimer(self)
+                self._updateTimer.timeout.connect(self._perform_listviews_update)
+            
+            # Start or restart timer for 3 minutes
+            self._updateTimer.start(180000)  # 3 * 60 * 1000 ms
+            self._perform_listviews_update()
+        
+        def _perform_listviews_update(self):
+            lw3_curindex = self.ui.listWidget_3.currentIndex()
+            lw4_curindex = self.ui.listWidget_4.currentIndex()
+            lw5_curindex = self.ui.listWidget_5.currentIndex()
+        
+            self.ui.listWidget_3.clear()
+            self.ui.listWidget_4.clear()
+            self.ui.listWidget_5.clear()
+            self.ui.listWidget_3.addItems([i.name for i in Main.hof_class.stopreporter])
+            self.ui.listWidget_4.addItems([i.RTNO for i in Main.hof_class.ddu])
+            self.ui.listWidget_5.addItems([i.destination for i in Main.hof_class.termini])
+            self.ui.listWidget_3.setCurrentIndex(lw3_curindex)
+            self.ui.listWidget_4.setCurrentIndex(lw4_curindex)
+            self.ui.listWidget_5.setCurrentIndex(lw5_curindex)
+        
+        # def closeEvent(self, event):
+
+        
+        # ...existing code...
+
+
+
+
+
         def delete_stuff(self,stuff:int):
             dct = {
                 1: (Main.hof_class.stopreporter, self.ui.listWidget_3),
@@ -441,8 +496,15 @@ class Main(QMainWindow):
                     if i not in bsl:
                         miss_bs.add(i)
             if miss_bs != set():
-                QMessageBox.warning(self, "Error", f"Bus stops {miss_bs if len(miss_bs)< 20 else list(miss_bs)[:20]} are not found in the bus stop list. Do you want to add them?", QMessageBox.Ok | QMessageBox.Cancel) #type: ignore
-                if QMessageBox.Ok: #type: ignore
+                # message = QMessageBox()
+                # message.setMinimumSize(200, 100)
+                # message.setWindowTitle("Error")
+                # message.setText(f"Bus stops {miss_bs if len(miss_bs)< 20 else list(miss_bs)[:20]} are not found in the bus stop list. Do you want to add them?")
+                # message.setIcon(QMessageBox.Warning) # type: ignore
+                # message.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel) # type: ignore
+                # message.accepted.connect(lambda: self.add_bs_from_list(list(miss_bs)))
+                QMessageBox.warning(self, "Error", f"Bus stops {miss_bs if len(miss_bs)< 20 else list(miss_bs)[:20]} are not found in the bus stop list. Do you want to add them?", QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel) #type: ignore
+                if QMessageBox.buttonClicked == QMessageBox.StandardButton.Ok:
                     self.add_bs_from_list(list(miss_bs))
             else:
                 QMessageBox.information(self, "Success", "All bus stop lists are valid.", QMessageBox.Ok) #type: ignore
@@ -458,8 +520,8 @@ class Main(QMainWindow):
             index = item.row()
             routesel = self.ui.listWidget_2.currentIndex()
             routeindex = routesel.row()
-            current_dir = self.bus_rt_direction
-            if current_dir == 1:
+            # current_dir = self.bus_rt_direction
+            if self.bus_rt_direction == 1:
                 Main.hof_class.infosystem[routeindex].busstop_list1_class._busstops.pop(index)
             else:
                 Main.hof_class.infosystem[routeindex].busstop_list2_class._busstops.pop(index)
@@ -470,9 +532,9 @@ class Main(QMainWindow):
             index = item.row()
             routesel = self.ui.listWidget_2.currentIndex()
             routeindex = routesel.row()
-            current_dir = self.bus_rt_direction
+            # current_dir = self.bus_rt_direction
             if self.ui.checkBox.isChecked():
-                if current_dir == 1:
+                if self.bus_rt_direction == 1:
                     Main.hof_class.infosystem[routeindex].busstop_list1_class._busstops.append(Main.hof_class.stopreporter[index].name)
                     self.ui.listWidget.addItem(Main.hof_class.stopreporter[index].name)
                 else:
@@ -482,7 +544,7 @@ class Main(QMainWindow):
                 cur_bs = self.ui.listWidget.currentIndex()
                 cur_index = cur_bs.row()
 
-                if current_dir == 1:
+                if self.bus_rt_direction == 1:
                     Main.hof_class.infosystem[routeindex].busstop_list1_class._busstops.insert(cur_index, Main.hof_class.stopreporter[index].name)
                     self.ui.listWidget.insertItem(cur_index, Main.hof_class.stopreporter[index].name)
                 else:
@@ -499,10 +561,16 @@ class Main(QMainWindow):
                 cur = self.ui.listWidget.item(index).text()
                 self.ui.listWidget.item(index-1).setText(cur)
                 self.ui.listWidget.item(index).setText(temp)
-                temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index-1]
-                cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index]
-                Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index-1] = cur
-                Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index] = temp
+                if self.bus_rt_direction == 1:
+                    temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index-1]
+                    cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index]
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index-1] = cur
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index] = temp
+                else:
+                    temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index-1]
+                    cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index]
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index-1] = cur
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index] = temp
                 self.ui.listWidget.setCurrentRow(index - 1)
 
                 # self.ui.listWidget.setCurrentRow(index - 1)
@@ -511,15 +579,22 @@ class Main(QMainWindow):
         def bsl_godown(self):
             item = self.ui.listWidget.currentIndex()
             index = item.row()
+            
             if index < self.ui.listWidget.count() - 1:
                 temp = self.ui.listWidget.item(index+1).text()
                 cur = self.ui.listWidget.item(index).text()
                 self.ui.listWidget.item(index+1).setText(cur)
                 self.ui.listWidget.item(index).setText(temp)
-                temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index+1]
-                cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index]
-                Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index+1] = cur
-                Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index] = temp
+                if self.bus_rt_direction == 1:
+                    temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index+1]
+                    cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index]
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index+1] = cur
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index] = temp
+                else:
+                    temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index+1]
+                    cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index]
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index+1] = cur
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index] = temp
                 self.ui.listWidget.setCurrentRow(index + 1)
 
 
@@ -528,10 +603,10 @@ class Main(QMainWindow):
             index = item.row()
             routesel = self.ui.listWidget_2.currentIndex()
             routeindex = routesel.row()
-            current_dir = self.bus_rt_direction
+            # current_dir = self.bus_rt_direction
             cur_bs = self.ui.listWidget_3.currentIndex()
             cur_index = cur_bs.row()
-            if current_dir == 1:
+            if self.bus_rt_direction == 1:
                 Main.hof_class.infosystem[routeindex].busstop_list1_class._busstops[index] = Main.hof_class.stopreporter[cur_index].name
             else:
                 Main.hof_class.infosystem[routeindex].busstop_list2_class._busstops[index] = Main.hof_class.stopreporter[cur_index].name
@@ -554,12 +629,12 @@ class Main(QMainWindow):
                 slices = list(split(ls, threads))
                 with multiprocessing.Pool(threads) as pool:
                     results = pool.starmap(search_in_slice, [(slice, name) for slice in slices])
-                
+
                 for slice_index, result in enumerate(results):
                     if result[0] is not None:
                         stop, index_in_slice = result
-                        # Calculate the actual index in the original list
-                        actual_index = slice_index * (len(ls) // threads) + index_in_slice
+                        offset = sum(len(slices[i]) for i in range(slice_index))
+                        actual_index = offset + index_in_slice
                         return stop, actual_index
                 return None, -1
 
@@ -628,7 +703,7 @@ class Main(QMainWindow):
             # for i in (Main.hof_class.infosystem[index].db_export_bsl1 if Main.HOFView.bus_rt_direction == 1 else Main.hof_class.infosystem[index].db_export_bsl2):
             #     self.ui.listWidget.addItem(i)
             # print(Main.hof_class.infosystem[index].busstop_list1 if Main.bus_rt_direction == 1 else Main.hof_class.infosystem[index].busstop_list2_class.db_export)
-            self.ui.listWidget.addItems(Main.hof_class.infosystem[index].db_export_bsl1 if self.bus_rt_direction == 1 else Main.hof_class.infosystem[index].busstop_list2_class.db_export)
+            self.ui.listWidget.addItems(Main.hof_class.infosystem[index].db_export_bsl1 if self.bus_rt_direction == 1 else Main.hof_class.infosystem[index].db_export_bsl2) 
         def change_rt_info(self):
             self.bus_rt_direction = 1
             item =  self.ui.listWidget_2.currentIndex()
@@ -660,8 +735,13 @@ class Main(QMainWindow):
             Main.hof_class.name = Main.hofname
             Main.hof_class.export_hof(Main.export_path + "/" + Main.hofname + ".hof")
             QMessageBox.information(self, "Saved", "Saved to " + Main.export_path + "/" + Main.hofname + ".hof")
-        def closewindow(self):
-            self.close()
+        def closeEvent(self, event: QCloseEvent) -> None:
+            Main.opened_windows = []
+            if hasattr(self, '_updateTimer'):
+                self._updateTimer.stop()
+            event.accept()
+            self.closed = True
+            event.accept()
 
     
 
