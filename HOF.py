@@ -1,7 +1,8 @@
 from string import Template
 from types import GeneratorType
 import sqlite3
-
+import sys
+import os
         
 class ericcode:
     mapping = {'a': 11, 'b': 12, 'c':13,'d':21,'e':22,'f':23,'g':31,'h':32,'i':33,'j':41,'k':42,'l':43,'m':51,'n':52,'o':53,'p':61,'q':62,'r':63,'s':71,'t':72,'u':73,'v':81,'w':82,'x':83,'y':91,'z':92,'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9}
@@ -474,10 +475,10 @@ $stoplist2
             return self._busstop_list2
         @property
         def db_export_bsl1(self) -> list:
-            return self._db_export_bsl1
+            return self.busstop_list1_class.db_export
         @property
         def db_export_bsl2(self) -> list:
-            return self._db_export_bsl2
+            return self.busstop_list2_class.db_export
         def __str__(self) -> str:
             return self.valid_infosystem.substitute(trip1=self._trip1, stoplist1=self._busstop_list1, trip2=self._trip2, stoplist2=self._busstop_list2)
         
@@ -651,7 +652,7 @@ $stoplist2
                     stop_name = lines[i + 1]
                     if len(stop_name) < 1:
                         continue
-                    if len(stop_name) >= 5 and len(lines[i+3]) <= 5:
+                    if len(stop_name) >= 5 or (len(time_parts := lines[i + 3].split()) <= 2 and time_parts[0].isdigit()):
                         # parse full stopreporter
                         chi_sec, eng_sec = 0, 0
                         time_parts = lines[i + 3].split()
@@ -679,8 +680,12 @@ $stoplist2
                         i += 7
                     else:
                         # parse DDU
-                        print(lines[i+2])
-                        print(lines[i+3])
+                        # print(lines[i])
+                        # print(lines[i+1])
+                        # print(lines[i+2])
+                        # print(lines[i+3])
+                        # print(lines[i+4])
+                        # print(lines[i+5])
                         sectiontimes_Y = int(lines[i + 2][-1])
                         sectiontimes_Z = int(lines[i + 3][-1])
                         inbound_price = float(lines[i + 4].lstrip('$')) if lines[i + 4].startswith('$') else 0.0
@@ -709,8 +714,12 @@ $stoplist2
                         
                         startidx = i + 3
                         endidx = startidx + int(lines[i + 1])
-                        print(lines[startidx:endidx])
+                        # print(lines[startidx:endidx])
+                        self.infosystem[-1].busstop_list2_class.busstops = lines[startidx:endidx]
                         self.infosystem[-1].busstop_list2 = lines[startidx:endidx]
+                        self.infosystem[-1]._busstop_list2._busstops= lines[startidx:endidx]
+                        # print(self.infosystem[-1].busstop_list2_class.db_export)
+                        
                         self.infosystem[-1].trip2_class.Destination = lines[startidx:endidx][-2] if len(lines[startidx:endidx]) > 1 else ""
                         i = endidx
                     else:
@@ -732,6 +741,9 @@ $stoplist2
                 else:
                     i += 1
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
             print(e)
             print(f"Error loading from {filename}")
             return
