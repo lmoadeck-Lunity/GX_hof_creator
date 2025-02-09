@@ -95,6 +95,9 @@ class Ui_MainWindow(object):
         self.widget = QWidget(self.centralwidget)
         self.widget.setObjectName(u"widget")
         self.widget.setMinimumSize(QSize(0, 82))
+        self.label = QLabel(self.widget)
+        self.label.setObjectName(u"label")
+        self.label.setGeometry(QRect(0, 0, 121, 71))
 
         self.verticalLayout_2.addWidget(self.widget)
 
@@ -144,5 +147,9 @@ class Ui_MainWindow(object):
         self.label_10.setText(QCoreApplication.translate("MainWindow", u"Destination", None))
         self.label_8.setText(QCoreApplication.translate("MainWindow", u"Busfull Display Filename", None))
         self.label_6.setText(QCoreApplication.translate("MainWindow", u"Displays", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"Enter displays in order \n"
+"of 4,3,2,1\n"
+"Each corresponding to your\n"
+"display page", None))
     # retranslateUi
 
