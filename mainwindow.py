@@ -218,7 +218,7 @@ class Main(QMainWindow):
             #----                               ----#
             # thread = Thread(target=self.update_listviews_every_3_minutes)
             # thread.start()
-            self.update_listviews_every_3_minutes()
+            # self.update_listviews_every_3_minutes() # Probably not needed anymore
             #----Termini, DDU, Stopreporter Part----#
             self.ui.listWidget_3.doubleClicked.connect(self.open_bs_lw3)
             self.ui.listWidget_4.doubleClicked.connect(self.open_ddu)
