@@ -9,3 +9,6 @@ __pycache__
 *pyproject*
 .qtcreator/
 converter.py
+build/
+dist/
+*.spec
