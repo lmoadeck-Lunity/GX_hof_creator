@@ -378,16 +378,8 @@ class Main(QMainWindow):
                 Main.opened_windows.append(Main.HOFView())
                 Main.opened_windows[-1].show()
                 Main.hofname = file[0].split("/")[-1].removesuffix(".hof")
-                self.ui.listWidget_3.clear()
-                self.ui.listWidget_4.clear()
-                self.ui.listWidget_5.clear()
-                self.ui.listWidget_2.clear()
-                self.ui.listWidget_3.addItems([i.name for i in Main.hof_class.stopreporter])
-                self.ui.listWidget_4.addItems([i.RTNO for i in Main.hof_class.ddu])
-                self.ui.listWidget_5.addItems([i.destination for i in Main.hof_class.termini])
-                self.ui.listWidget_2.addItems([i.route for i in Main.hof_class.infosystem])
 
-                # self.close()
+                self.close()
         
         def open_db(self):
             Main.hof_class = HOF_KMBHan()
@@ -399,16 +391,9 @@ class Main(QMainWindow):
                 Main.opened_windows[-1].show()
                 Main.hofname = file[0].split("/")[-1].removesuffix(".db")
                 Main.export_path = file[0].removesuffix(Main.hofname + ".db")
-                self.ui.listWidget_3.clear()
-                self.ui.listWidget_4.clear()
-                self.ui.listWidget_5.clear()
-                self.ui.listWidget_2.clear()
-                self.ui.listWidget_3.addItems([i.name for i in Main.hof_class.stopreporter])
-                self.ui.listWidget_4.addItems([i.RTNO for i in Main.hof_class.ddu])
-                self.ui.listWidget_5.addItems([i.destination for i in Main.hof_class.termini])
-                self.ui.listWidget_2.addItems([i.route for i in Main.hof_class.infosystem])
 
-                # self.close()
+
+                self.close()
             
             
 
