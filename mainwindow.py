@@ -25,6 +25,8 @@ import os
 from HOF import HOF_Hanover as HOF_KMBHan
 from HOF import ericcode
 from collections import deque
+global build_with_genLED
+build_with_genLED = False
 def split(a, n):
     k, m = divmod(len(a), n)
     return (a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n))
@@ -363,8 +365,8 @@ class Main(QMainWindow):
 
 
         def generate_8w_6w_LCD(self):
-            if not os.path.isfile("genLED.py"):
-                QMessageBox.warning(self, "Error", "You do not have the LED generate module.", QMessageBox.Ok) #type: ignore
+            if not build_with_genLED:
+                QMessageBox.warning(self, "Error", "This version of the program does not have the LED generator.", QMessageBox.Ok) #type: ignore
             else:
                 Main.raise_unimplemented()
 
