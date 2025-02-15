@@ -98,7 +98,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Preferences", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Project Folder Location", None))
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"Undefined", None))
+        self.label_2.setText(QCoreApplication.translate("MainWindow", u"Hof Name", None))
         self.toolButton.setText(QCoreApplication.translate("MainWindow", u"...", None))
     # retranslateUi
 

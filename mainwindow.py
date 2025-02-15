@@ -21,6 +21,7 @@ from ui_PrefWin import Ui_MainWindow as PrefWin_UI
 import multiprocessing
 import copy
 import tkinter as tk
+import os
 from HOF import HOF_Hanover as HOF_KMBHan
 from HOF import ericcode
 from collections import deque
@@ -144,6 +145,8 @@ class Main(QMainWindow):
             self.ui.setupUi(self)
             self.ui.lineEdit.setText(Main.export_path)
             self.ui.lineEdit.textChanged.connect(self.set_path)
+            self.ui.lineEdit_2.setText(Main.hofname)
+            self.ui.lineEdit_2.textChanged.connect(lambda: setattr(Main, "hofname", self.ui.lineEdit_2.text()))
             self.ui.toolButton.clicked.connect(self.fileexplorer)
         def closewindow(self):
             self.close()
@@ -215,6 +218,14 @@ class Main(QMainWindow):
             self.ui.actionExport_HOF.triggered.connect(self.export_hof)
             self.ui.actionSave_to_DB.triggered.connect(self.save)
             self.ui.actionPreferences.triggered.connect(self.open_pref)
+            self.ui.actionGenerate_8w_6w_LCD.triggered.connect(self.generate_8w_6w_LCD)
+            self.ui.actionGenerate_DPIPv2.triggered.connect(self.generate_8w_6w_LCD)
+            self.ui.actionOpen_global_cfg.triggered.connect(lambda: Main.raise_unimplemented())
+            self.ui.actionOpen_HOF.triggered.connect(self.reopen_hof)
+            self.ui.actionOpen_Project_Folder.triggered.connect(self.open_db)
+            self.ui.actionOpen_TTL_for_Route.triggered.connect(lambda: Main.raise_unimplemented())  
+            
+            # self.ui.act
             #----                               ----#
             # thread = Thread(target=self.update_listviews_every_3_minutes)
             # thread.start()
@@ -350,6 +361,54 @@ class Main(QMainWindow):
             #     Main.hof_class.infosystem.insert(index, new_item)
             #     self.ui.listWidget_2.insertItem(index, new_item.route)
 
+
+        def generate_8w_6w_LCD(self):
+            if not os.path.isfile("genLED.py"):
+                QMessageBox.warning(self, "Error", "You do not have the LED generate module.", QMessageBox.Ok) #type: ignore
+            else:
+                Main.raise_unimplemented()
+
+        def reopen_hof(self):
+            Main.hof_class = HOF_KMBHan()
+            file = QFileDialog.getOpenFileName(self, 'Open HOF', 'C:\\', 'HOF Files (*.hof)')
+            if file[0]:
+                Main.hof_class.load_from_hof(file[0])
+                Main.opened_windows.append(Main.HOFView())
+                Main.opened_windows[-1].show()
+                Main.hofname = file[0].split("/")[-1].removesuffix(".hof")
+                self.ui.listWidget_3.clear()
+                self.ui.listWidget_4.clear()
+                self.ui.listWidget_5.clear()
+                self.ui.listWidget_2.clear()
+                self.ui.listWidget_3.addItems([i.name for i in Main.hof_class.stopreporter])
+                self.ui.listWidget_4.addItems([i.RTNO for i in Main.hof_class.ddu])
+                self.ui.listWidget_5.addItems([i.destination for i in Main.hof_class.termini])
+                self.ui.listWidget_2.addItems([i.route for i in Main.hof_class.infosystem])
+
+                # self.close()
+        
+        def open_db(self):
+            Main.hof_class = HOF_KMBHan()
+            file = QFileDialog.getOpenFileName(self, 'Open Database', 'C:\\', 'Database Files (*.db)')
+            if file[0]:
+
+                Main.hof_class.load_from_db(file[0])
+                Main.opened_windows.append(Main.HOFView())
+                Main.opened_windows[-1].show()
+                Main.hofname = file[0].split("/")[-1].removesuffix(".db")
+                Main.export_path = file[0].removesuffix(Main.hofname + ".db")
+                self.ui.listWidget_3.clear()
+                self.ui.listWidget_4.clear()
+                self.ui.listWidget_5.clear()
+                self.ui.listWidget_2.clear()
+                self.ui.listWidget_3.addItems([i.name for i in Main.hof_class.stopreporter])
+                self.ui.listWidget_4.addItems([i.RTNO for i in Main.hof_class.ddu])
+                self.ui.listWidget_5.addItems([i.destination for i in Main.hof_class.termini])
+                self.ui.listWidget_2.addItems([i.route for i in Main.hof_class.infosystem])
+
+                # self.close()
+            
+            
 
         def open_pref(self):
             Main.opened_windows.append(Main.PrefWin())
@@ -722,6 +781,7 @@ class Main(QMainWindow):
             conn = sqlite3.connect(Main.export_path + "/" + Main.hofname + ".db")
             c = conn.cursor()
             c.execute("create table if not exists prefs (key text, value text)")
+            c.execute("delete from prefs where key = 'export_path'")
             c.execute("insert into prefs values ('export_path', ?)", (Main.export_path,))
             conn.commit()
             conn.close()
