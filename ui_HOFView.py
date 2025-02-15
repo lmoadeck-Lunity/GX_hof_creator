@@ -417,7 +417,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"HOF View", None))
-        self.actionOpen_Project_Folder.setText(QCoreApplication.translate("MainWindow", u"Open Project Folder", None))
+        self.actionOpen_Project_Folder.setText(QCoreApplication.translate("MainWindow", u"Open Database", None))
         self.actionOpen_HOF.setText(QCoreApplication.translate("MainWindow", u"Open HOF", None))
         self.actionOpen_TTL_for_Route.setText(QCoreApplication.translate("MainWindow", u"Open TTL for Route", None))
         self.actionSave_to_DB.setText(QCoreApplication.translate("MainWindow", u"Save to DB", None))
