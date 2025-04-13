@@ -256,6 +256,7 @@ class Main(QMainWindow):
             #----Infosystem Part----#
             self.ui.listWidget_2.itemSelectionChanged.connect(self.get_bsl)
             self.ui.listWidget_2.itemSelectionChanged.connect(self.change_rt_info)
+            self.ui.listWidget_2.itemSelectionChanged.connect(self.dirchange_Y) # shit change
             self.ui.pushButton.clicked.connect(self.dirchange_Y)
             self.ui.pushButton_2.clicked.connect(self.dirchange_Z)
             self.ui.listWidget.doubleClicked.connect(self.open_bs)

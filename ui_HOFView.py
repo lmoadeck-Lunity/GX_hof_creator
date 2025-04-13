@@ -272,7 +272,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.toolButton_4 = QToolButton(self.centralwidget)
         self.toolButton_4.setObjectName(u"toolButton_4")
-        self.toolButton_4.setMaximumSize(QSize(23, 23))
+        self.toolButton_4.setMaximumSize(QSize(58, 40))
         icon = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.GoUp))
         self.toolButton_4.setIcon(icon)
 
@@ -280,7 +280,7 @@ class Ui_MainWindow(object):
 
         self.toolButton_3 = QToolButton(self.centralwidget)
         self.toolButton_3.setObjectName(u"toolButton_3")
-        self.toolButton_3.setMaximumSize(QSize(23, 23))
+        self.toolButton_3.setMaximumSize(QSize(58, 40))
         icon1 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.GoDown))
         self.toolButton_3.setIcon(icon1)
 
