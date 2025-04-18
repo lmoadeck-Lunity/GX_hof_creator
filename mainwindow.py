@@ -22,6 +22,7 @@ import multiprocessing
 import copy
 import tkinter as tk
 import os
+import re
 from HOF import HOF_Hanover as HOF_KMBHan
 from HOF import ericcode
 from collections import deque
@@ -551,8 +552,8 @@ class Main(QMainWindow):
                 # message.setIcon(QMessageBox.Warning) # type: ignore
                 # message.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel) # type: ignore
                 # message.accepted.connect(lambda: self.add_bs_from_list(list(miss_bs)))
-                QMessageBox.warning(self, "Error", f"Bus stops {miss_bs if len(miss_bs)< 20 else list(miss_bs)[:20]} are not found in the bus stop list. Do you want to add them?", QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel) #type: ignore
-                if QMessageBox.buttonClicked == QMessageBox.StandardButton.Ok:
+                a = QMessageBox.warning(self, "Error", f"Bus stops {miss_bs if len(miss_bs)< 20 else list(miss_bs)[:20]} are not found in the bus stop list. Do you want to add them?", QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel) #type: ignore
+                if a == QMessageBox.StandardButton.Ok: # Check directly against the returned button value
                     self.add_bs_from_list(list(miss_bs))
             else:
                 QMessageBox.information(self, "Success", "All bus stop lists are valid.", QMessageBox.Ok) #type: ignore
@@ -914,16 +915,25 @@ class Main(QMainWindow):
             self.ui.lineEdit_2.setText(Destination)
             self.ui.lineEdit_3.setText(busfull)
             self.curindex = curindex
-            
+            self.ui.toolButton.clicked.connect(self.select_flip)
             # self.ui.tableWidget.setItem
             for i in range(len(disps)):
                 self.ui.tableWidget.setItem(i, 0, QTableWidgetItem(disps[i]))
 
         def select_flip(self):
             files = QFileDialog.getOpenFileNames(self, 'Select Desti Display', 'C:\\', 'Destination Display Files (*.bmp)')
+            print(files)
             self.ui.tableWidget.clear()
-            for i in range(4,4-len(files),-1):
-                self.ui.tableWidget.setItem(i, 0, QTableWidgetItem(files[0][4-i]))
+            # for i in range(3,2-len(files),-1):
+            #     print(i,3-len(files),files[0][4-i],len(files[0][4-i]))
+            #     self.ui.tableWidget.setItem(i, 0, QTableWidgetItem(re.sub(r'^(.*?hanover\\)', '', files[0][4-i])))
+            count = 0
+            lim = len(files[0]) - 1
+            while count < 4:
+                print(count,lim,files[0])
+                # print(files[0][count],re.findall(r'^.*hanover/', files[0][count]))
+                self.ui.tableWidget.setItem(3-count, 0, (QTableWidgetItem("" if count > lim else re.sub(r'^.*?hanover/', '', files[0][count]))))#QTableWidgetItem(re.sub(r'^.*?hanover/', '', files[0][count])) if count < lim else QTableWidgetItem("")))
+                count += 1
 
         def closeEvent(self,event):
             Main.hof_class.termini[self.curindex].eric = self.ui.lineEdit.text()
@@ -933,6 +943,9 @@ class Main(QMainWindow):
             for i in range(4,0,-1):
                 if self.ui.tableWidget.item(i,0) is not None:
                     disps.append(self.ui.tableWidget.item(i,0).text()) #type: ignore
+                elif self.ui.tableWidget.item(i,0) is None:
+                    disps.append("")
+            print(disps)
             Main.hof_class.termini[self.curindex].flip = disps
             self.sig.connect(Main.opened_windows[0].update_listviews)
             self.sig.emit(self.curindex,3)
