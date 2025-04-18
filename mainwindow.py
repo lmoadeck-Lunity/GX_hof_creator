@@ -941,9 +941,9 @@ class Main(QMainWindow):
             Main.hof_class.termini[self.curindex].busfull = self.ui.lineEdit_3.text()
             disps = []
             for i in range(4,0,-1):
-                if self.ui.tableWidget.item(i,0) is not None:
+                if self.ui.tableWidget.item(i,0) is not None or self.ui.tableWidget.item(i,0) != "":
                     disps.append(self.ui.tableWidget.item(i,0).text()) #type: ignore
-                elif self.ui.tableWidget.item(i,0) is None:
+                elif self.ui.tableWidget.item(i,0) is None or self.ui.tableWidget.item(i,0) == "":
                     disps.append("")
             print(disps)
             Main.hof_class.termini[self.curindex].flip = disps
