@@ -169,7 +169,8 @@ class Main(QMainWindow):
             self.ui.actionOpen_HOF.triggered.connect(self.open_hof)
             self.ui.pushButton.clicked.connect(self.open_hof)
             self.ui.pushButton_2.clicked.connect(self.open_db)
-            self.ui.pushButton_3.clicked.connect(self.open_globalcfg)
+            # self.ui.pushButton_3.clicked.connect(self.open_globalcfg) Goodbye Map Import
+            self.ui.pushButton_4.clicked.connect(self.create_blank_hof)
         def open_db(self):
             Main.hof_class = HOF_KMBHan()
             file = QFileDialog.getOpenFileName(self, 'Open Database', 'C:\\', 'Database Files (*.db)')
@@ -197,6 +198,14 @@ class Main(QMainWindow):
 
         def open_globalcfg(self):
             Main.raise_unimplemented()
+
+        def create_blank_hof(self):
+            Main.hof_class = HOF_KMBHan()
+            # Main.hof_class.create_blank_hof()
+            Main.opened_windows.append(Main.HOFView())
+            Main.opened_windows[-1].show()
+            Main.hofname = "New HOF"
+            self.close()
         def closewindow(self):
             self.close()
 

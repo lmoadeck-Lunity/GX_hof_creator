@@ -757,6 +757,35 @@ $stoplist2
         self.infosystem = hof_entry.infosystem
         print(f"Loaded from {filename}")
 
+    def new_from_map(self, map_location: str) -> None:
+        # self.name = mapname
+        # self.servicetrip = mapname
+        # file_ls = os.listdir(f"{map_location}\\TTData") #Please give map location as a folder
+        # files_pending = [i for i in file_ls if i.endswith('.ttp')]
+        # seta = set()
+        # route_sets = set()
+        # for i in files_pending:
+        #     stations = []
+        #     with open(f"{map_location}\\TTData\\{i}", 'r',encoding="utf-8") as f:
+        #         lines = [line.strip() for line in f]
+        #     for index,line in enumerate(lines):
+        #         if line == '[trip]':
+        #             trip = lines[index+1]
+        #             termini = lines[index+2]
+        #             rtno = lines[index+3]
+        #         if line == '[station]':
+        #             stations.append(f"_{lines[index+3]}")
+        #             stations.append(f"_PleaseHoldTheHandrail_HKBTS_KMB")
+        #             stations.append(f"{lines[index+3]}")
+        #     seta.add((rtno,termini,tuple(stations)))
+        # files_pending = [i for i in file_ls if i.endswith('.ttc')]
+        raise NotImplementedError("Map loading not able to be implemented.")
+        # print(seta)
+        
+
+        # print(self.showfullhof())
+        # print(self.name,self.servicetrip)
+
 
 
 

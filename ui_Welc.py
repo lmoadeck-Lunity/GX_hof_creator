@@ -84,10 +84,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.pushButton_3 = QPushButton(self.horizontalLayoutWidget)
-        self.pushButton_3.setObjectName(u"pushButton_3")
+        self.pushButton_4 = QPushButton(self.horizontalLayoutWidget)
+        self.pushButton_4.setObjectName(u"pushButton_4")
 
-        self.horizontalLayout.addWidget(self.pushButton_3)
+        self.horizontalLayout.addWidget(self.pushButton_4)
 
         self.pushButton_2 = QPushButton(self.horizontalLayoutWidget)
         self.pushButton_2.setObjectName(u"pushButton_2")
@@ -149,7 +149,7 @@ class Ui_MainWindow(object):
         self.actionGenerate_8w_6w_LCD.setText(QCoreApplication.translate("MainWindow", u"Generate 8w,6w", None))
         self.actionGenerate_DPIPv2.setText(QCoreApplication.translate("MainWindow", u"Generate DPIPv2", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"GX Hof Creator", None))
-        self.pushButton_3.setText(QCoreApplication.translate("MainWindow", u"New Project from Map", None))
+        self.pushButton_4.setText(QCoreApplication.translate("MainWindow", u"New Project", None))
         self.pushButton_2.setText(QCoreApplication.translate("MainWindow", u"Open a GHC .db", None))
         self.pushButton.setText(QCoreApplication.translate("MainWindow", u"Open HOF", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
