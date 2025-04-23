@@ -157,7 +157,8 @@ $busstops
             self._busfull = value
         @property
         def flip(self) -> list[str]:
-            return self._flip
+            # return self._flip
+            return [a.replace("/","\\") for a in self._flip]
         @flip.setter
         def flip(self, value: list[str]) -> None:
             self._flip = value
@@ -743,7 +744,7 @@ $stoplist2
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
+            print(exc_type, fname, exc_tb.tb_lineno) 
             print(e)
             print(f"Error loading from {filename}")
             return
@@ -755,3 +756,12 @@ $stoplist2
         self.termini = hof_entry.termini
         self.infosystem = hof_entry.infosystem
         print(f"Loaded from {filename}")
+
+
+
+
+class Hanover_KMB_NEW(HOF_Hanover):
+    Holdthehandrail = True # able to be changed by user
+    HOFCLASS = HOF_Hanover
+    def __init__(self, name: str = 'Default', servicetrip: str = 'Not In Service') -> None:
+        self.HOFCLASS = HOF_Hanover(name, servicetrip)

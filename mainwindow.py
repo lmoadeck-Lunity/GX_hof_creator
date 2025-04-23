@@ -23,6 +23,7 @@ import copy
 import tkinter as tk
 import os
 import re
+import collections
 from HOF import HOF_Hanover as HOF_KMBHan
 from HOF import ericcode
 from collections import deque
@@ -374,29 +375,46 @@ class Main(QMainWindow):
                 Main.raise_unimplemented()
 
         def reopen_hof(self):
+            # Close all opened windows except self
+            for win in Main.opened_windows[:]:
+                if win is not self:
+                    win.close()
+            Main.opened_windows.clear()
+            # Reset the HOF_KMBHan instance
             Main.hof_class = HOF_KMBHan()
+            # Explicitly clear termini and other lists
+            Main.hof_class.termini.clear()
+            Main.hof_class.stopreporter.clear()
+            Main.hof_class.ddu.clear()
+            Main.hof_class.infosystem.clear()
             file = QFileDialog.getOpenFileName(self, 'Open HOF', 'C:\\', 'HOF Files (*.hof)')
             if file[0]:
                 Main.hof_class.load_from_hof(file[0])
+                self.close()
                 Main.opened_windows.append(Main.HOFView())
                 Main.opened_windows[-1].show()
                 Main.hofname = file[0].split("/")[-1].removesuffix(".hof")
 
-                self.close()
-        
         def open_db(self):
+            # Close all opened windows except self
+            for win in Main.opened_windows[:]:
+                if win is not self:
+                    win.close()
+            Main.opened_windows.clear()
+            # Reset the HOF_KMBHan instance
             Main.hof_class = HOF_KMBHan()
+            # Explicitly clear termini and other lists
+            Main.hof_class.termini.clear()
+            Main.hof_class.stopreporter.clear()
+            Main.hof_class.ddu.clear()
+            Main.hof_class.infosystem.clear()
             file = QFileDialog.getOpenFileName(self, 'Open Database', 'C:\\', 'Database Files (*.db)')
             if file[0]:
-
                 Main.hof_class.load_from_db(file[0])
+                self.close()
                 Main.opened_windows.append(Main.HOFView())
                 Main.opened_windows[-1].show()
                 Main.hofname = file[0].split("/")[-1].removesuffix(".db")
-                Main.export_path = file[0].removesuffix(Main.hofname + ".db")
-
-
-                self.close()
             
             
 
@@ -935,20 +953,21 @@ class Main(QMainWindow):
                 self.ui.tableWidget.setItem(3-count, 0, (QTableWidgetItem("" if count > lim else re.sub(r'^.*?hanover/', '', files[0][count]))))#QTableWidgetItem(re.sub(r'^.*?hanover/', '', files[0][count])) if count < lim else QTableWidgetItem("")))
                 count += 1
 
-        def closeEvent(self,event):
+        def closeEvent(self, event):
             Main.hof_class.termini[self.curindex].eric = self.ui.lineEdit.text()
             Main.hof_class.termini[self.curindex].destination = self.ui.lineEdit_2.text()
             Main.hof_class.termini[self.curindex].busfull = self.ui.lineEdit_3.text()
             disps = []
-            for i in range(4,0,-1):
-                if self.ui.tableWidget.item(i,0) is not None or self.ui.tableWidget.item(i,0) != "":
-                    disps.append(self.ui.tableWidget.item(i,0).text()) #type: ignore
-                elif self.ui.tableWidget.item(i,0) is None or self.ui.tableWidget.item(i,0) == "":
+            for i in range(3, -1, -1):
+                item = self.ui.tableWidget.item(i, 0)
+                if item is not None:
+                    disps.append(item.text())
+                else:
                     disps.append("")
             print(disps)
             Main.hof_class.termini[self.curindex].flip = disps
             self.sig.connect(Main.opened_windows[0].update_listviews)
-            self.sig.emit(self.curindex,3)
+            self.sig.emit(self.curindex, 3)
             event.accept()
 
         
