@@ -652,6 +652,7 @@ $stoplist2
                     # print(len(lines[i + 1]), len(lines[i + 3]),lines[i + 3],lines[i + 1])
                     stop_name = lines[i + 1]
                     if len(stop_name) < 1:
+                        i +=1
                         continue
                     if len(stop_name) >= 5 or (len(time_parts := lines[i + 3].split()) <= 2 and time_parts[0].isdigit()):
                         # parse full stopreporter
