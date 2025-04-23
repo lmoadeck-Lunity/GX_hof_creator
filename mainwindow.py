@@ -105,6 +105,7 @@ class Main(QMainWindow):
     # tail_index = 0
     cur_instance = None
     cross_method_datum = deque([Signal(int) for _ in range(1)], maxlen=50)  
+    stopreporter_genlist = []
     # def __init__(self, parent=None):
     #     super().__init__(parent)
     #     self.cross_method_dataqueue = ObservableList([None for _ in range(50)], callback=self.indexIncrement)
@@ -225,6 +226,7 @@ class Main(QMainWindow):
             # for i in Main.hof_class.infosystem:
             #     self.ui.listWidget_2.addItem(i.route) #infosystem
             self.ui.listWidget_3.addItems([i.name for i in Main.hof_class.stopreporter])
+            Main.stopreporter_genlist = ["" for _ in range(len(Main.hof_class.stopreporter))]
             self.ui.listWidget_4.addItems([i.RTNO for i in Main.hof_class.ddu])
             self.ui.listWidget_5.addItems([i.destination for i in Main.hof_class.termini])
             self.ui.listWidget_2.addItems([i.route for i in Main.hof_class.infosystem])
@@ -861,7 +863,9 @@ class Main(QMainWindow):
             Main.hof_class.stopreporter[self.curindex].EngSeconds = self.ui.spinBox_2.value()
             Main.hof_class.stopreporter[self.curindex].Outbound_sectionfare = self.ui.doubleSpinBox.value()
             Main.hof_class.stopreporter[self.curindex].Inbound_sectionfare = self.ui.doubleSpinBox_2.value()
-            Main.hof_class.stopreporter[self.curindex].comment = f"{self.ui.lineEdit_3.text()}|{self.ui.lineEdit_4.text()}"
+            # Main.hof_class.stopreporter[self.curindex].comment = f"{self.ui.lineEdit_3.text()}|{self.ui.lineEdit_4.text()}"
+            Main.stopreporter_genlist[self.curindex] =f"{self.ui.lineEdit_3.text()}|{self.ui.lineEdit_4.text()}"
+
             # if self.ui.checkBox.isChecked() and not self.orig_autoskip:
             #     Main.hof_class.add_stopreporter(f"_{self.ui.lineEdit.text()}", self.ui.lineEdit_2.text(), self.ui.spinBox.value(), self.ui.spinBox_2.value(), self.ui.doubleSpinBox.value(), self.ui.doubleSpinBox_2.value())
             #     Main.hof_class.stopreporter[-1].comment = f"{self.ui.lineEdit_3.text()}|{self.ui.lineEdit_4.text()}"

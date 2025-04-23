@@ -183,12 +183,13 @@ $busstops
             self._EngDisplay = EngDisplay
             self._ChiSeconds = str(ChiSeconds).rjust(2,'0')
             self._EngSeconds = str(EngSeconds).rjust(2,'0')
-            self._Outbound_sectionfare = f"${Outbound_sectionfare:.1f}" if isinstance(Outbound_sectionfare,float) and Outbound_sectionfare != -1.0 else name
-            self._Inbound_sectionfare = f"${Inbound_sectionfare:.1f}" if isinstance(Inbound_sectionfare,float) and Inbound_sectionfare != -1.0 else name
+            self._Outbound_sectionfare = f"${Outbound_sectionfare:.1f}" if isinstance(Outbound_sectionfare,float) and Outbound_sectionfare != -1.0 else comment if comment != '' else name
+            self._Inbound_sectionfare = f"${Inbound_sectionfare:.1f}" if isinstance(Inbound_sectionfare,float) and Inbound_sectionfare != -1.0 else comment if comment != '' else name
             self._Autoskip = False
             self._pages = 1
             self._engscroll = self._EngDisplay.count('@') // 2
             self._comment = comment
+
 
         @property
         def name(self) -> str:
@@ -215,7 +216,7 @@ $busstops
         def EngDisplay(self, value: str) -> None:
             self._EngDisplay = value
             self._engscroll = self._EngDisplay.count('@') / 2
-            if self._engscroll > 2:
+            if self._engscroll >= 2:
                 self._name = self._name #this is to trigger the setter of name to add the exclamation mark
         @property
         def ChiSeconds(self) -> int:
@@ -505,8 +506,8 @@ $stoplist2
     
     def add_ddu(self, RTNO:str = '',Outbound_dir:str = '',Inbound_dir:str = '',Outbound_price:float = -1.0,Inbound_price:float = -1.0,sectiontimes_Y:int = 0,sectiontimes_Z:int = 0) -> None:
         self.ddu.append(self.Busstop_DDU(RTNO,Outbound_dir,Inbound_dir,Outbound_price,Inbound_price,sectiontimes_Y,sectiontimes_Z))
-    def add_stopreporter(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0) -> None:
-        self.stopreporter.append(self.Busstop_Stopreporter(name,EngDisplay,ChiSeconds,EngSeconds,Outbound_sectionfare,Inbound_sectionfare))
+    def add_stopreporter(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0,comment:str = "") -> None:
+        self.stopreporter.append(self.Busstop_Stopreporter(name,EngDisplay,ChiSeconds,EngSeconds,Outbound_sectionfare,Inbound_sectionfare,comment))
     def add_terminus(self,allexit:bool = False, eric: str = '', destination: str = '', busfull: str = '', flip: list[str] = [], RTID: str = '') -> None:
         self.termini.append(self.Termini(allexit, eric, destination, busfull, flip, RTID))
     # def add_infosystem(self,eric:str =  '',Destination:str = '',RouteNo:str = '') -> None:
@@ -532,7 +533,7 @@ $stoplist2
         c.execute(f'''CREATE TABLE IF NOT EXISTS stopreporter (
                 name TEXT, EngDisplay TEXT, ChiSeconds INTEGER,
                 EngSeconds INTEGER, Outbound_sectionfare REAL,
-                Inbound_sectionfare REAL, comment TEXT)''')
+                Inbound_sectionfare REAL, comment TEXT,chinesemongen TEXT)''')
         c.execute(f'''CREATE TABLE IF NOT EXISTS termini (
                 allexit BOOL, eric TEXT, destination TEXT, busfull TEXT,
                 flip4 TEXT, flip3 TEXT, flip2 TEXT, flip1 TEXT, RTID TEXT)''')
