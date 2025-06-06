@@ -6,6 +6,7 @@ from PySide6.QtGui import QCloseEvent, QKeySequence,QShortcut
 from PySide6.QtCore import Signal, Slot, QTimer
 from threading import Thread
 from time import sleep
+import random
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
@@ -321,19 +322,20 @@ class Main(QMainWindow):
                 dct[stuff][1].addItem(f"R{lenth}")
             
         def duplicate_stuff(self, stuff: int):
-            dct = {
-                1: (Main.hof_class.stopreporter, self.ui.listWidget_3),
-                2: (Main.hof_class.ddu, self.ui.listWidget_4),
-                3: (Main.hof_class.termini, self.ui.listWidget_5),
-                4: (Main.hof_class.infosystem, self.ui.listWidget_2)
-            }
+            # dct = {
+            #     1: (Main.hof_class.stopreporter, self.ui.listWidget_3),
+            #     2: (Main.hof_class.ddu, self.ui.listWidget_4),
+            #     3: (Main.hof_class.termini, self.ui.listWidget_5),
+            #     4: (Main.hof_class.infosystem, self.ui.listWidget_2)
+            # }
             if stuff == 1:
                 ite = self.ui.listWidget_3.currentIndex()
                 index = ite.row()
                 original = Main.hof_class.stopreporter[index]
                 new_item = copy.deepcopy(original)
+                new_item.busstopID = "".join([chr((ord(i) + random.randint(0,9)))for i in new_item.busstopID])
                 Main.hof_class.stopreporter.insert(index, new_item)
-                self.ui.listWidget_3.insertItem(index, new_item.name)
+                self.ui.listWidget_3.insertItem(index, f"{new_item.name}_")
             elif stuff == 2:
                 ite = self.ui.listWidget_4.currentIndex()
                 index = ite.row()
@@ -644,11 +646,19 @@ class Main(QMainWindow):
                     cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index]
                     Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index-1] = cur
                     Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index] = temp
+                    tempid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index-1]
+                    curid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index]
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index-1] = curid
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index] = tempid
                 else:
                     temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index-1]
                     cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index]
                     Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index-1] = cur
                     Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index] = temp
+                    tempid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index-1]
+                    curid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index]
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index-1] = curid
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index] = tempid
                 self.ui.listWidget.setCurrentRow(index - 1)
 
                 # self.ui.listWidget.setCurrentRow(index - 1)
@@ -668,11 +678,21 @@ class Main(QMainWindow):
                     cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index]
                     Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index+1] = cur
                     Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index] = temp
+                    tempid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index+1]
+                    curid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index]
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index+1] = curid
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index] = tempid
+                    
                 else:
                     temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index+1]
                     cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index]
                     Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index+1] = cur
                     Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index] = temp
+                    tempid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index+1]
+                    curid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index]
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index+1] = curid
+                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index] = tempid
+                    
                 self.ui.listWidget.setCurrentRow(index + 1)
 
 
@@ -686,6 +706,7 @@ class Main(QMainWindow):
             cur_index = cur_bs.row()
             if self.bus_rt_direction == 1:
                 Main.hof_class.infosystem[routeindex].busstop_list1_class._busstops[index] = Main.hof_class.stopreporter[cur_index].name
+                
             else:
                 Main.hof_class.infosystem[routeindex].busstop_list2_class._busstops[index] = Main.hof_class.stopreporter[cur_index].name
             self.ui.listWidget.item(index).setText(Main.hof_class.stopreporter[cur_index].name)
@@ -802,6 +823,9 @@ class Main(QMainWindow):
             c.execute("create table if not exists prefs (key text, value text)")
             c.execute("delete from prefs where key = 'export_path'")
             c.execute("insert into prefs values ('export_path', ?)", (Main.export_path,))
+            c.execute('create table if not exists stopreporter_chi (chi text)')
+            c.execute('delete from stopreporter_chi')
+            c.executemany('insert into stopreporter_chi values (?)', [(i,) for i in Main.stopreporter_genlist])
             conn.commit()
             conn.close()
             QMessageBox.information(self, "Saved", "Saved to " + Main.export_path + "/" + Main.hofname + ".db")
@@ -866,6 +890,7 @@ class Main(QMainWindow):
             # Main.hof_class.stopreporter[self.curindex].comment = f"{self.ui.lineEdit_3.text()}|{self.ui.lineEdit_4.text()}"
             Main.stopreporter_genlist[self.curindex] =f"{self.ui.lineEdit_3.text()}|{self.ui.lineEdit_4.text()}"
 
+                
             # if self.ui.checkBox.isChecked() and not self.orig_autoskip:
             #     Main.hof_class.add_stopreporter(f"_{self.ui.lineEdit.text()}", self.ui.lineEdit_2.text(), self.ui.spinBox.value(), self.ui.spinBox_2.value(), self.ui.doubleSpinBox.value(), self.ui.doubleSpinBox_2.value())
             #     Main.hof_class.stopreporter[-1].comment = f"{self.ui.lineEdit_3.text()}|{self.ui.lineEdit_4.text()}"

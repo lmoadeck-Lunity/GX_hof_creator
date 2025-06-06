@@ -9,3 +9,11 @@ make request to open data, get stoplists from route, route price from csv from g
 ways to make searching faster
 LED mon gen integration
 searchbar
+detect change in bus stop, update all route entries with the stop using id
+
+this has proven to be challenging, for one you dont know weather if the bus stop in the busstop list (rt)
+
+
+ok so count the number of blank string, if the ID list not exist then is blank and no ID, else do some special stuff for pairing
+make sure the add bus stop function links the ID, including the check bus stop list, add busstop, dupe
+make it so that the ID recalcs after a change when dupe

@@ -3,7 +3,6 @@ from types import GeneratorType
 import sqlite3
 import sys
 import os
-import hashlib
         
 class ericcode:
     mapping = {'a': 11, 'b': 12, 'c':13,'d':21,'e':22,'f':23,'g':31,'h':32,'i':33,'j':41,'k':42,'l':43,'m':51,'n':52,'o':53,'p':61,'q':62,'r':63,'s':71,'t':72,'u':73,'v':81,'w':82,'x':83,'y':91,'z':92,'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9}
@@ -39,7 +38,21 @@ class HOF_Hanover:
     stopreporter : list['Busstop_Stopreporter'] = []
     termini : list['Termini'] = []
     infosystem : list['Infosystem'] = []
-
+    ddu_expected_keys_set = {'RTNO', 'Outbound_dir', 'Inbound_dir', 'Outbound_price', 'Inbound_price', 'sectiontimes_Y', 'sectiontimes_Z'}
+    # ddu_exp_k_datatypes = [str,str,str,float,float,int,int]
+    ddu_exp_k_datatypes = ["TEXT","TEXT","TEXT","REAL","REAL","INTEGER","INTEGER"]
+    
+    stopreporter_expected_keys_set = {'name', 'EngDisplay', 'ChiSeconds', 'EngSeconds', 'Outbound_sectionfare', 'Inbound_sectionfare', 'comment'}
+    # stopreporter_exp_k_datatypes = [str,str,int,int,float,float,str]
+    stopreporter_exp_k_datatypes = ["TEXT","TEXT","INTEGER","INTEGER","REAL","REAL","TEXT"]
+    
+    termini_expected_keys_set = {'allexit', 'eric', 'destination', 'busfull', 'flip', 'RTID'}
+    # termini_exp_k_datatypes = [bool,str,str,str,str,str]
+    termini_exp_k_datatypes = ["BOOL","TEXT","TEXT","TEXT","TEXT","TEXT"]
+    
+    infosystem_expected_keys_set = {'single_or_dual_dir', 'route', 'dir1', 'dir2', 'bustoplist1', 'bustoplist2'}
+    # infosystem_exp_k_datatypes = [bool,str,str,str,str,str]
+    infosystem_exp_k_datatypes = ["BOOL","TEXT","TEXT","TEXT","TEXT","TEXT"]
     header_template = Template('''------------------------------------------
 Created with Hof Creator for GX7767 Hoilun
 https://github.com/FreeHK-Lunity/GX_hof_creator/
@@ -165,7 +178,7 @@ $busstops
             return HOF_Hanover.termini_template.substitute(allexit=self._allexit, eric=self._eric, destination=self._destination, busfull=self._busfull, pai_page4 = self._flup4, pai_page3 = self._flup3, pai_page2 = self._flup2,pai_page1 = self._flup1,RTID=self._RTID)
 
     class Busstop_Stopreporter:
-        def __init__(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0,comment: str = '',provided_id:str = "") -> None:
+        def __init__(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0,comment: str = '') -> None:
             self._name = name
             self._EngDisplay = EngDisplay
             self._ChiSeconds = str(ChiSeconds).rjust(2,'0')
@@ -176,9 +189,7 @@ $busstops
             self._pages = 1
             self._engscroll = self._EngDisplay.count('@') // 2
             self._comment = comment
-            # Generate a unique busstopID based on name and EngDisplay
-            unique_str = f"{name}-{EngDisplay}"
-            self.busstopID = hashlib.md5(unique_str.encode('utf-8')).hexdigest()[:8] if provided_id == "" else provided_id
+
 
         @property
         def name(self) -> str:
@@ -187,14 +198,14 @@ $busstops
         @name.setter
         def name(self, value: str) -> None:
             modified_name = value
-            # if self._engscroll > 2 and not modified_name[-1] == '!':
-            #     modified_name += "!"
-            # if self._pages == 2 and not (modified_name[0:1] == '!' or modified_name[0:2] == '_!'):
-            #     modified_name = '!' + modified_name
-            # if self._pages == 3 and not (modified_name[0:2] == '!!' or modified_name[0:3] == '_!!'):
-            #     modified_name = '!' + modified_name
-            # if self._Autoskip and not modified_name[-1] == '_':
-            #     modified_name += "_"
+            if self._engscroll > 2 and not modified_name[-1] == '!':
+                modified_name += "!"
+            if self._pages == 2 and not (modified_name[0:1] == '!' or modified_name[0:2] == '_!'):
+                modified_name = '!' + modified_name
+            if self._pages == 3 and not (modified_name[0:2] == '!!' or modified_name[0:3] == '_!!'):
+                modified_name = '!' + modified_name
+            if self._Autoskip and not modified_name[-1] == '_':
+                modified_name += "_"
             self._name = modified_name
 
         @property
@@ -366,7 +377,6 @@ $stoplist2
                 self._busstops = bus_stops
                 self._rtno = rtno
                 self._amount_of_stops = len(bus_stops)
-                self.bustops_withid = ["" for _ in range(len(bus_stops))]
             @property
             def busstops(self) -> str:
                 return '\n'.join(self._busstops)
@@ -471,12 +481,6 @@ $stoplist2
         @property
         def db_export_bsl2(self) -> list:
             return self.busstop_list2_class.db_export
-        @property
-        def db_export_bsl1_withid(self) -> str:
-            return "\n".join(self.busstop_list1_class.bustops_withid)
-        @property
-        def db_export_bsl2_withid(self) -> str:
-            return "\n".join(self.busstop_list2_class.bustops_withid)
         def __str__(self) -> str:
             return self.valid_infosystem.substitute(trip1=self._trip1, stoplist1=self._busstop_list1, trip2=self._trip2, stoplist2=self._busstop_list2)
         
@@ -529,13 +533,13 @@ $stoplist2
         c.execute(f'''CREATE TABLE IF NOT EXISTS stopreporter (
                 name TEXT, EngDisplay TEXT, ChiSeconds INTEGER,
                 EngSeconds INTEGER, Outbound_sectionfare REAL,
-                Inbound_sectionfare REAL, comment TEXT, busstopID TEXT primary key)''')
+                Inbound_sectionfare REAL, comment TEXT)''')
         c.execute(f'''CREATE TABLE IF NOT EXISTS termini (
                 allexit BOOL, eric TEXT, destination TEXT, busfull TEXT,
                 flip4 TEXT, flip3 TEXT, flip2 TEXT, flip1 TEXT, RTID TEXT)''')
         c.execute(f'''CREATE TABLE IF NOT EXISTS infosystem (
                 single_or_dual_dir BOOL, route TEXT,
-                dir1 TEXT, dir2 TEXT, bustoplist1 TEXT, bustoplist2 TEXT,busstoplist1_withid TEXT,busstoplist2_withid TEXT)''')
+                dir1 TEXT, dir2 TEXT, bustoplist1 TEXT, bustoplist2 TEXT)''')
         c.execute('DELETE FROM ddu')
         c.execute('DELETE FROM stopreporter')
         c.execute('DELETE FROM termini')
@@ -546,7 +550,7 @@ $stoplist2
             # if i.name[:9] == "_DingDong":
                 # print(i._Inbound_sectionfare, i._Outbound_sectionfare,"|",i.Inbound_sectionfare, i.Outbound_sectionfare)
         c.executemany('INSERT INTO ddu VALUES (?,?,?,?,?,?,?)', [(i.RTNO, i.Outbound_dir, i.Inbound_dir, i.Outbound_price, i.Inbound_price, i.sectiontimes_Y, i.sectiontimes_Z) for i in self.ddu])
-        c.executemany('INSERT INTO stopreporter VALUES (?,?,?,?,?,?,?)', [(i.name, i.EngDisplay, i.ChiSeconds, i.EngSeconds, i.Outbound_sectionfare, i.Inbound_sectionfare, i.comment,i.busstopID) for i in self.stopreporter])
+        c.executemany('INSERT INTO stopreporter VALUES (?,?,?,?,?,?,?)', [(i.name, i.EngDisplay, i.ChiSeconds, i.EngSeconds, i.Outbound_sectionfare, i.Inbound_sectionfare, i.comment) for i in self.stopreporter])
         c.executemany('INSERT INTO termini VALUES (?,?,?,?,?,?,?,?,?)', [(i.allexit, i.eric, i.destination, i.busfull, i.flip[3] if len(i.flip) > 3 else '', i.flip[2] if len(i.flip) > 2 else '', i.flip[1] if len(i.flip) > 1 else '', i.flip[0] if len(i.flip) > 0 else '', i.RTID) for i in self.termini])
         c.executemany('INSERT INTO infosystem VALUES (?,?,?,?,?,?)', [(i.single_or_dual_dir, i.route, i.direction1, i.direction2, str(i.busstop_list1_class.db_export), str(i.busstop_list2_class.db_export)) for i in self.infosystem])
 
@@ -554,19 +558,6 @@ $stoplist2
         database_file.close()
 
         print(f"Saved to {filename}")
-
-    def fill_busttoplist_with_id(self) -> None: #slow but works?
-        for i in self.infosystem:
-            # print(i.busstop_list1_class.db_export)
-            for index, j in enumerate(i.busstop_list1_class.db_export):
-                for k in self.stopreporter:
-                    if k.name == j:
-                        i.busstop_list1_class.bustops_withid[index] = k.busstopID
-            for index, j in enumerate(i.busstop_list2_class.db_export):
-                for k in self.stopreporter:
-                    if k.name == j:
-                        i.busstop_list2_class.bustops_withid[index] = k.busstopID
-
 
     def load_from_db(self, filename: str) -> None:
 
@@ -790,7 +781,7 @@ $stoplist2
         #             stations.append(f"{lines[index+3]}")
         #     seta.add((rtno,termini,tuple(stations)))
         # files_pending = [i for i in file_ls if i.endswith('.ttc')]
-        raise NotImplementedError("Map loading is not able to be implemented.")
+        raise NotImplementedError("Map loading not able to be implemented.")
         # print(seta)
         
 
