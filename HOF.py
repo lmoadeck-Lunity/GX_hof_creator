@@ -4,6 +4,7 @@ import sqlite3
 import sys
 import os
 import hashlib
+import multiprocessing
         
 class ericcode:
     mapping = {'a': 11, 'b': 12, 'c':13,'d':21,'e':22,'f':23,'g':31,'h':32,'i':33,'j':41,'k':42,'l':43,'m':51,'n':52,'o':53,'p':61,'q':62,'r':63,'s':71,'t':72,'u':73,'v':81,'w':82,'x':83,'y':91,'z':92,'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9}
@@ -30,7 +31,14 @@ class gorbacode:
     '''
     I dont know what code gorba uses, so I will leave this empty for now
     '''
-
+def split(a, n):
+    k, m = divmod(len(a), n)
+    return (a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n))
+def search_in_slice(sliceee, name):
+    for index, stop in enumerate(sliceee):
+        if stop.name == name:
+            return stop, index
+    return None, -1
 
 class HOF_Hanover:
     name = 'Default'
@@ -117,6 +125,7 @@ $busstops
             self._flup4 = flip[3] if len(flip) > 3 else ''
             self._flup3 = flip[2] if len(flip) > 2 else ''
             self._flup2 = flip[1] if len(flip) > 1 else ''
+            
             self._flup1 = flip[0] if len(flip) > 0 else ''
             self._RTID = RTID
 
@@ -362,11 +371,11 @@ $stoplist2
             def __repr__(self) -> list[str]:
                 return [self._ericcode, self._Destination, self._routeno]
         class busstop_list():
-            def __init__(self,bus_stops:list[str] = [],rtno:str = '') -> None:
+            def __init__(self,bus_stops:list[str] = [],rtno:str = '',busstop_ids:list[str] = []) -> None:
                 self._busstops = bus_stops
                 self._rtno = rtno
                 self._amount_of_stops = len(bus_stops)
-                self.bustops_withid = ["" for _ in range(len(bus_stops))]
+                self.bustops_withid = ["" for _ in range(len(bus_stops))] if busstop_ids == [] else busstop_ids
             @property
             def busstops(self) -> str:
                 return '\n'.join(self._busstops)
@@ -393,6 +402,9 @@ $stoplist2
             @property
             def db_export(self) -> list:
                 return self._busstops
+            @property
+            def db_export_withid(self) -> str:
+                return "\n".join(self.bustops_withid)
             def __str__(self) -> str:
                 return HOF_Hanover.busstop_list_template.substitute(amount_of_stops=self._amount_of_stops + 1, rtno=self._rtno, busstops=self.busstops)
             def __repr__(self) -> list[int | str | list[str]]:
@@ -401,17 +413,18 @@ $stoplist2
                 return self._busstops
 
 
-        def __init__(self,single_or_dual_dir:bool = True,route:str='',dir1:str='',dir2:str='',bustoplist1:list[str]=[],bustoplist2:list[str]=[]) -> None: 
+        def __init__(self,single_or_dual_dir:bool = True,route:str='',dir1:str='',dir2:str='',bustoplist1:list[str]=[],bustoplist2:list[str]=[],busstoplist1_ids:list[str]=[], busstoplist2_ids:list[str]=[]) -> None: 
             #route must be inputted as '289X', we will automaticllu add Y and Z at the end
             #single_or_dual_dir with True being dual direction and False being single direction
             self._single_or_dual_dir = single_or_dual_dir
             self._trip1 = self.trip(f"{route}Y",dir1,route)
             self._trip2 = self.trip(f"{route}Z",dir2,route)
             
-            self._busstop_list1 = self.busstop_list(bustoplist1,route)
-            self._busstop_list2 = self.busstop_list(bustoplist2,route)
+            self._busstop_list1 = self.busstop_list(bustoplist1,route,busstoplist1_ids)
+            self._busstop_list2 = self.busstop_list(bustoplist2,route, busstoplist2_ids)
             self._db_export_bsl1 = self._busstop_list1.db_export
             self._db_export_bsl2 = self._busstop_list2.db_export
+            
 
         @property
         def single_or_dual_dir(self) -> bool:
@@ -510,8 +523,16 @@ $stoplist2
     #     self.infosystem.append(self.Infosystem.trip(eric,Destination,RouteNo))
     # def add_busstop_list(self,bus_stops:list[str] = [],rtno:str = '') -> None:
     #     self.infosystem.append(self.Infosystem.busstop_list(bus_stops,rtno))
-    def add_infosystem(self,single_or_dual_dir:bool,route:str='',dir1:str='',dir2:str='',bustoplist1:list[str]=[],bustoplist2:list[str]=[]) -> None:
-        self.infosystem.append(self.Infosystem(single_or_dual_dir,route,dir1,dir2,bustoplist1,bustoplist2))
+    # def add_infosystem(self,single_or_dual_dir:bool,route:str='',dir1:str='',dir2:str='',bustoplist1:list[str]=[],bustoplist2:list[str]=[]) -> None:
+    #     self.infosystem.append(self.Infosystem(single_or_dual_dir,route,dir1,dir2,bustoplist1,bustoplist2))
+    def add_infosystem(self,hasid:bool = False, single_or_dual_dir:bool = True, route:str='', dir1:str='', dir2:str='', bustoplist1:list[str]=[], bustoplist2:list[str]=[],busstoplist1_ids:list[str]=[], busstoplist2_ids:list[str]=[]) -> None:
+        if hasid:
+            # print("Adding infosystem with id")
+            self.infosystem.append(self.Infosystem(single_or_dual_dir, route, dir1, dir2, bustoplist1, bustoplist2, busstoplist1_ids, busstoplist2_ids))
+        else:
+            # print("Adding infosystem without id")
+            self.infosystem.append(self.Infosystem(single_or_dual_dir, route, dir1, dir2, bustoplist1, bustoplist2))
+            self.fill_busttoplist_with_id()
     def showfullhof(self) -> str:
         returnstring = '\n'.join([''.join(self.header_template.substitute(name = self.name,servicetrip = self.servicetrip)),'\n'.join((str(i) for i in self.termini)),'\n'.join(str(i) for i in self.ddu),'\n'.join((str(i) for i in self.stopreporter)),'\n'.join((str(i) for i in self.infosystem))])
         return returnstring
@@ -526,6 +547,7 @@ $stoplist2
                 RTNO TEXT, Outbound_dir TEXT, Inbound_dir TEXT,
                 Outbound_price REAL, Inbound_price REAL,
                 sectiontimes_Y INTEGER, sectiontimes_Z INTEGER)''')
+
         c.execute(f'''CREATE TABLE IF NOT EXISTS stopreporter (
                 name TEXT, EngDisplay TEXT, ChiSeconds INTEGER,
                 EngSeconds INTEGER, Outbound_sectionfare REAL,
@@ -548,24 +570,50 @@ $stoplist2
         c.executemany('INSERT INTO ddu VALUES (?,?,?,?,?,?,?)', [(i.RTNO, i.Outbound_dir, i.Inbound_dir, i.Outbound_price, i.Inbound_price, i.sectiontimes_Y, i.sectiontimes_Z) for i in self.ddu])
         c.executemany('INSERT INTO stopreporter VALUES (?,?,?,?,?,?,?)', [(i.name, i.EngDisplay, i.ChiSeconds, i.EngSeconds, i.Outbound_sectionfare, i.Inbound_sectionfare, i.comment,i.busstopID) for i in self.stopreporter])
         c.executemany('INSERT INTO termini VALUES (?,?,?,?,?,?,?,?,?)', [(i.allexit, i.eric, i.destination, i.busfull, i.flip[3] if len(i.flip) > 3 else '', i.flip[2] if len(i.flip) > 2 else '', i.flip[1] if len(i.flip) > 1 else '', i.flip[0] if len(i.flip) > 0 else '', i.RTID) for i in self.termini])
-        c.executemany('INSERT INTO infosystem VALUES (?,?,?,?,?,?)', [(i.single_or_dual_dir, i.route, i.direction1, i.direction2, str(i.busstop_list1_class.db_export), str(i.busstop_list2_class.db_export)) for i in self.infosystem])
+        c.executemany('INSERT INTO infosystem VALUES (?,?,?,?,?,?)', [(i.single_or_dual_dir, i.route, i.direction1, i.direction2, "\n".join(i.busstop_list1_class.db_export), "\n".join(i.busstop_list2_class.db_export), i.busstop_list1_class.db_export_withid, i.busstop_list2_class.db_export_withid) for i in self.infosystem])
 
         database_file.commit()
         database_file.close()
 
         print(f"Saved to {filename}")
 
-    def fill_busttoplist_with_id(self) -> None: #slow but works?
-        for i in self.infosystem:
-            # print(i.busstop_list1_class.db_export)
-            for index, j in enumerate(i.busstop_list1_class.db_export):
-                for k in self.stopreporter:
-                    if k.name == j:
-                        i.busstop_list1_class.bustops_withid[index] = k.busstopID
-            for index, j in enumerate(i.busstop_list2_class.db_export):
-                for k in self.stopreporter:
-                    if k.name == j:
-                        i.busstop_list2_class.bustops_withid[index] = k.busstopID
+    
+    def fill_busttoplist_with_id(self) -> None:
+        """
+        Efficiently populates bus stop IDs by creating a lookup map.
+        This avoids repeated searches and multiprocessing overhead.
+        """
+        # Create a lookup dictionary for O(1) access. This is much faster.
+        stop_name_to_id_map = {stop.name: stop.busstopID for stop in self.stopreporter}
+    
+        for info in self.infosystem:
+            # Process first bus stop list
+            for index, stop_name in enumerate(info.busstop_list1_class.db_export):
+                busstop_id = stop_name_to_id_map.get(stop_name)
+                if busstop_id is not None:
+                    info.busstop_list1_class.bustops_withid[index] = busstop_id
+                else:
+                    print(f"Warning: Busstop '{stop_name}' not found in stopreporter.")
+    
+            # Process second bus stop list
+            for index, stop_name in enumerate(info.busstop_list2_class.db_export):
+                busstop_id = stop_name_to_id_map.get(stop_name)
+                if busstop_id is not None:
+                    info.busstop_list2_class.bustops_withid[index] = busstop_id
+                else:
+                    print(f"Warning: Busstop '{stop_name}' not found in stopreporter.")
+    
+    # ...existing code...
+        # for i in self.infosystem:
+        #     # print(i.busstop_list1_class.db_export)
+        #     for index, j in enumerate(i.busstop_list1_class.db_export):
+        #         for k in self.stopreporter:
+        #             if k.name == j:
+        #                 i.busstop_list1_class.bustops_withid[index] = k.busstopID
+        #     for index, j in enumerate(i.busstop_list2_class.db_export):
+        #         for k in self.stopreporter:
+        #             if k.name == j:
+        #                 i.busstop_list2_class.bustops_withid[index] = k.busstopID
 
 
     def load_from_db(self, filename: str) -> None:
@@ -617,8 +665,9 @@ $stoplist2
         ls = c.fetchall()
         for index, i in enumerate(ls):
             ls[index] = list(i)
-            ls[index][4] = ls[index][4][1:-1].replace("'","").split(', ')
-            ls[index][5] = ls[index][5][1:-1].replace("'","").split(', ')
+            ls[index][4] = ls[index][4].split('\n') if isinstance(ls[index][4], str) else []
+            ls[index][5] = ls[index][5].split('\n') if isinstance(ls[index][5], str) else []
+            # ls[index][5] = ls[index][5][1:-1].replace("'","").split(', ')
         self.infosystem = [self.Infosystem(*i) for i in ls]
         database_file.close()
         print(f"Loaded from {filename}")
@@ -730,6 +779,7 @@ $stoplist2
                         self.infosystem[-1].busstop_list2_class.busstops = lines[startidx:endidx]
                         self.infosystem[-1].busstop_list2 = lines[startidx:endidx]
                         self.infosystem[-1]._busstop_list2._busstops= lines[startidx:endidx]
+                        self.infosystem[-1].busstop_list2_class.bustops_withid = ["" for _ in range(len(lines[startidx:endidx]))] # reset the busstop ids
                         # print(self.infosystem[-1].busstop_list2_class.db_export)
                         
                         self.infosystem[-1].trip2_class.Destination = lines[startidx:endidx][-2] if len(lines[startidx:endidx]) > 1 else ""
@@ -766,6 +816,7 @@ $stoplist2
         self.stopreporter = hof_entry.stopreporter
         self.termini = hof_entry.termini
         self.infosystem = hof_entry.infosystem
+        
         print(f"Loaded from {filename}")
 
     def new_from_map(self, map_location: str) -> None:
@@ -800,7 +851,7 @@ $stoplist2
 
 
 
-class Hanover_KMB_NEW(HOF_Hanover):
+class Hanover_KMB_NEW(HOF_Hanover): #UNUSED, TO BE MERGED INTO BIG CLASS LATER. WIDE ADOPTION NOT YET HAPPENED 
     Holdthehandrail = True # able to be changed by user
     HOFCLASS = HOF_Hanover
     def __init__(self, name: str = 'Default', servicetrip: str = 'Not In Service') -> None:

@@ -1,9 +1,9 @@
 # This Python file uses the following encoding: utf-8
 import sys
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QTableWidgetItem
+from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QTableWidgetItem, QListWidgetItem
 from PySide6.QtGui import QCloseEvent, QKeySequence,QShortcut
-from PySide6.QtCore import Signal, Slot, QTimer
+from PySide6.QtCore import Signal, Slot, QTimer, Qt
 from threading import Thread
 from time import sleep
 import random
@@ -227,6 +227,8 @@ class Main(QMainWindow):
             # for i in Main.hof_class.infosystem:
             #     self.ui.listWidget_2.addItem(i.route) #infosystem
             self.ui.listWidget_3.addItems([i.name for i in Main.hof_class.stopreporter])
+            self.busstop_id_to_index = {}
+            self.add_bs_to_dict()
             Main.stopreporter_genlist = ["" for _ in range(len(Main.hof_class.stopreporter))]
             self.ui.listWidget_4.addItems([i.RTNO for i in Main.hof_class.ddu])
             self.ui.listWidget_5.addItems([i.destination for i in Main.hof_class.termini])
@@ -317,7 +319,7 @@ class Main(QMainWindow):
                 dct[stuff][1].addItem(f"{lenth}A")
             elif stuff == 4:
                 lenth = len(Main.hof_class.infosystem)
-                Main.hof_class.add_infosystem(False, f"R{lenth}", "Outbound", "Inbound", [], [])
+                Main.hof_class.add_infosystem(False, False, f"R{lenth}", "Outbound", "Inbound", [], [])
                 Main.opened_windows.append(Main.AddRouteEntry(None,False,f"R{lenth}", "Outbound", "Inbound",curindex=lenth))
                 dct[stuff][1].addItem(f"R{lenth}")
             
@@ -380,6 +382,14 @@ class Main(QMainWindow):
             #     Main.hof_class.infosystem.insert(index, new_item)
             #     self.ui.listWidget_2.insertItem(index, new_item.route)
 
+
+        def add_bs_to_dict(self) -> None:
+            for i, stop in enumerate(Main.hof_class.stopreporter):
+                item = QListWidgetItem(stop.name)
+                item.setData(Qt.ItemDataRole.UserRole, stop.busstopID)  # Store the busstopID
+                self.ui.listWidget_3.addItem(item)
+                # Create reverse lookup
+                self.busstop_id_to_index[stop.busstopID] = i
 
         def generate_8w_6w_LCD(self):
             if not build_with_genLED:
@@ -591,8 +601,10 @@ class Main(QMainWindow):
         
         def add_bs_from_list(self,bs:list[str]) -> None:
             for i in bs:
-                Main.hof_class.add_stopreporter(f"{i}", "New Stop", 0, 0, -1.0, -1.0)
+                Main.hof_class.add_stopreporter(f"{i}", f"{i}", 0, 0, -1.0, -1.0)
                 self.ui.listWidget_3.addItem(f"{i}")
+            Main.hof_class.fill_busttoplist_with_id()
+            self.add_bs_to_dict()  # Update the busstop_id_to_index dictionary
 
 
         def del_bs_from_sel(self):
@@ -634,66 +646,33 @@ class Main(QMainWindow):
         def bsl_goup(self):
             item = self.ui.listWidget.currentIndex()
             index = item.row()
-            print(item.data(), index)
-            if index > 0:
-                # self.ui.listWidget.item(index-1).setText(item.data())
-                temp = self.ui.listWidget.item(index-1).text()
-                cur = self.ui.listWidget.item(index).text()
-                self.ui.listWidget.item(index-1).setText(cur)
-                self.ui.listWidget.item(index).setText(temp)
-                if self.bus_rt_direction == 1:
-                    temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index-1]
-                    cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index]
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index-1] = cur
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index] = temp
-                    tempid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index-1]
-                    curid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index]
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index-1] = curid
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index] = tempid
-                else:
-                    temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index-1]
-                    cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index]
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index-1] = cur
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index] = temp
-                    tempid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index-1]
-                    curid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index]
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index-1] = curid
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index] = tempid
-                self.ui.listWidget.setCurrentRow(index - 1)
+            if index <= 0:
+                return
+            route_index = self.ui.listWidget_2.currentIndex().row()
+            # Swap items in UI
+            self._swap_listwidget_items(index - 1, index)
+            # Swap items in data model
+            self._swap_busstop_data(route_index, index - 1, index)
+            # Update selection
+            self.ui.listWidget.setCurrentRow(index - 1)
 
-                # self.ui.listWidget.setCurrentRow(index - 1)
-                # self.ui.listWidget.takeItem(index)
-                # self.ui.listWidget.insertItem(index - 1, item.data())
         def bsl_godown(self):
             item = self.ui.listWidget.currentIndex()
             index = item.row()
             
-            if index < self.ui.listWidget.count() - 1:
-                temp = self.ui.listWidget.item(index+1).text()
-                cur = self.ui.listWidget.item(index).text()
-                self.ui.listWidget.item(index+1).setText(cur)
-                self.ui.listWidget.item(index).setText(temp)
-                if self.bus_rt_direction == 1:
-                    temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index+1]
-                    cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index]
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index+1] = cur
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class._busstops[index] = temp
-                    tempid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index+1]
-                    curid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index]
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index+1] = curid
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list1_class.bustops_withid[index] = tempid
-                    
-                else:
-                    temp = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index+1]
-                    cur = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index]
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index+1] = cur
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class._busstops[index] = temp
-                    tempid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index+1]
-                    curid = Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index]
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index+1] = curid
-                    Main.hof_class.infosystem[self.ui.listWidget_2.currentIndex().row()].busstop_list2_class.bustops_withid[index] = tempid
-                    
-                self.ui.listWidget.setCurrentRow(index + 1)
+            if index >= self.ui.listWidget.count() - 1:
+                return
+            
+            route_index = self.ui.listWidget_2.currentIndex().row()
+            
+            # Swap items in UI
+            self._swap_listwidget_items(index, index + 1)
+            
+            # Swap items in data model
+            self._swap_busstop_data(route_index, index, index + 1)
+            
+            # Update selection
+            self.ui.listWidget.setCurrentRow(index + 1)
 
 
         def change_bs_FromSel(self):
@@ -715,6 +694,30 @@ class Main(QMainWindow):
             # else:
             #     Main.hof_class.infosystem[routeindex].busstop_list2_class._busstops[index] = Main.hof_class.stopreporter[index].name
             # self.ui.listWidget.item(index).setText(Main.hof_class.stopreporter[index].name)
+            
+        def _swap_listwidget_items(self, index1, index2):
+            """Swap two QListWidgetItem objects completely"""
+            # Take items from the list widget
+            item1 = self.ui.listWidget.takeItem(index1)
+            item2 = self.ui.listWidget.takeItem(index2 if index2 > index1 else index2)
+            
+            # Insert them back in swapped positions
+            self.ui.listWidget.insertItem(index1, item2)
+            self.ui.listWidget.insertItem(index2, item1)
+        def _swap_busstop_data(self, route_index, index1, index2):
+            """Swap bus stop data in the appropriate direction list"""
+            if self.bus_rt_direction == 1:
+                busstop_list = Main.hof_class.infosystem[route_index].busstop_list1_class
+            else:
+                busstop_list = Main.hof_class.infosystem[route_index].busstop_list2_class
+            
+            # Swap bus stops
+            busstop_list._busstops[index1], busstop_list._busstops[index2] = \
+                busstop_list._busstops[index2], busstop_list._busstops[index1]
+            
+            # Swap bus stop IDs
+            busstop_list.bustops_withid[index1], busstop_list.bustops_withid[index2] = \
+                busstop_list.bustops_withid[index2], busstop_list.bustops_withid[index1]
         def open_rt(self):
             item = self.ui.listWidget_2.currentIndex()
             index = item.row()
@@ -723,34 +726,31 @@ class Main(QMainWindow):
                                                           Main.hof_class.infosystem[index].direction2,curindex=index))
             Main.opened_windows[-1].show()
         def open_bs(self):
-            def search_bs(name: str, threads: int):
-                ls = Main.hof_class.stopreporter
-                slices = list(split(ls, threads))
-                with multiprocessing.Pool(threads) as pool:
-                    results = pool.starmap(search_in_slice, [(slice, name) for slice in slices])
-
-                for slice_index, result in enumerate(results):
-                    if result[0] is not None:
-                        stop, index_in_slice = result
-                        offset = sum(len(slices[i]) for i in range(slice_index))
-                        actual_index = offset + index_in_slice
-                        return stop, actual_index
-                return None, -1
-
+            """Open bus stop directly using stored ID - no search needed!"""
             item = self.ui.listWidget.currentItem()
-            index = item.text()
-            stop, actual_index = search_bs(index, multiprocessing.cpu_count())
-            if stop is not None:
-                Main.opened_windows.append(Main.AddBusStop(None,stop.name, 
-                                                           stop.EngDisplay,
-                                                           stop.ChiSeconds,
-                                                           stop.EngSeconds,
-                                                           stop.Outbound_sectionfare if isinstance(stop.Outbound_sectionfare,float) else -1.0,
-                                                           stop.Inbound_sectionfare if isinstance(stop.Inbound_sectionfare,float) else -1.0,
-                                                           curindex=actual_index))
+            if not item:
+                return
+                
+            # Get the busstopID from the item data
+            busstop_id = item.data(Qt.ItemDataRole.UserRole)
+            if not busstop_id:
+                QMessageBox.warning(self, "Error", "No bus stop ID found for this item.", QMessageBox.Ok)# type: ignore 
+                return
+                
+            # Direct lookup - O(1) operation!
+            index = self.busstop_id_to_index.get(busstop_id)
+            if index is not None:
+                stop = Main.hof_class.stopreporter[index]
+                Main.opened_windows.append(Main.AddBusStop(None, stop.name, 
+                                                        stop.EngDisplay,
+                                                        stop.ChiSeconds,
+                                                        stop.EngSeconds,
+                                                        stop.Outbound_sectionfare if isinstance(stop.Outbound_sectionfare, float) else -1.0,
+                                                        stop.Inbound_sectionfare if isinstance(stop.Inbound_sectionfare, float) else -1.0,
+                                                        curindex=index))
                 Main.opened_windows[-1].show()
             else:
-                QMessageBox.warning(self, "Error", f"Bus stop {index} not found.", QMessageBox.Ok) #type: ignore
+                QMessageBox.warning(self, "Error", f"Bus stop with ID {busstop_id} not found.", QMessageBox.Ok) # type: ignore
 
         def open_bs_lw3(self):
             item = self.ui.listWidget_3.currentIndex()
@@ -803,6 +803,12 @@ class Main(QMainWindow):
             #     self.ui.listWidget.addItem(i)
             # print(Main.hof_class.infosystem[index].busstop_list1 if Main.bus_rt_direction == 1 else Main.hof_class.infosystem[index].busstop_list2_class.db_export)
             self.ui.listWidget.addItems(Main.hof_class.infosystem[index].db_export_bsl1 if self.bus_rt_direction == 1 else Main.hof_class.infosystem[index].db_export_bsl2) 
+            for each in self.ui.listWidget.findItems("", Qt.MatchFlag.MatchContains):
+                # Set the user data to the busstopID
+                busstop_obj = next((stop for stop in Main.hof_class.stopreporter if stop.name == each.text()), None)
+                if busstop_obj is not None:
+                    busstop_id = busstop_obj.busstopID
+                    each.setData(Qt.ItemDataRole.UserRole, busstop_id)
         def change_rt_info(self):
             self.bus_rt_direction = 1
             item =  self.ui.listWidget_2.currentIndex()
@@ -888,7 +894,6 @@ class Main(QMainWindow):
             Main.hof_class.stopreporter[self.curindex].Outbound_sectionfare = self.ui.doubleSpinBox.value()
             Main.hof_class.stopreporter[self.curindex].Inbound_sectionfare = self.ui.doubleSpinBox_2.value()
             # Main.hof_class.stopreporter[self.curindex].comment = f"{self.ui.lineEdit_3.text()}|{self.ui.lineEdit_4.text()}"
-            Main.stopreporter_genlist[self.curindex] =f"{self.ui.lineEdit_3.text()}|{self.ui.lineEdit_4.text()}"
 
                 
             # if self.ui.checkBox.isChecked() and not self.orig_autoskip:
