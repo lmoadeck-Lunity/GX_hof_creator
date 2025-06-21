@@ -47,7 +47,7 @@ class HOF_Hanover:
     stopreporter : list['Busstop_Stopreporter'] = []
     termini : list['Termini'] = []
     infosystem : list['Infosystem'] = []
-
+    handrail_flag = True
     header_template = Template('''------------------------------------------
 Created with Hof Creator for GX7767 Hoilun
 https://github.com/FreeHK-Lunity/GX_hof_creator/
@@ -113,6 +113,8 @@ $busstops
     def __init__(self,name:str='Default',servicetrip:str='Not In Service') -> None:
         self.name = name
         self.servicetrip = servicetrip
+        self.handrail_flag = True
+        
 
 
     class Termini:
@@ -174,13 +176,16 @@ $busstops
             return HOF_Hanover.termini_template.substitute(allexit=self._allexit, eric=self._eric, destination=self._destination, busfull=self._busfull, pai_page4 = self._flup4, pai_page3 = self._flup3, pai_page2 = self._flup2,pai_page1 = self._flup1,RTID=self._RTID)
 
     class Busstop_Stopreporter:
-        def __init__(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0,comment: str = '',provided_id:str = "") -> None:
+        def __init__(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0,comment: str = '',provided_id:str = "",parent=None) -> None:
             self._name = name
+            self._parent = parent  # Store reference to parent instance
             self._EngDisplay = EngDisplay
             self._ChiSeconds = str(ChiSeconds).rjust(2,'0')
             self._EngSeconds = str(EngSeconds).rjust(2,'0')
-            self._Outbound_sectionfare = f"${Outbound_sectionfare:.1f}" if isinstance(Outbound_sectionfare,float) and Outbound_sectionfare != -1.0 else comment if comment != '' else name
-            self._Inbound_sectionfare = f"${Inbound_sectionfare:.1f}" if isinstance(Inbound_sectionfare,float) and Inbound_sectionfare != -1.0 else comment if comment != '' else name
+                    # Fix: Safely access handrail_flag with fallback
+            handrail_flag = self._parent.handrail_flag if self._parent is not None else HOF_Hanover.handrail_flag
+            self._Outbound_sectionfare = f"${Outbound_sectionfare:.1f}" if isinstance(Outbound_sectionfare,float) and Outbound_sectionfare != -1.0 else comment if comment != '' else "No_PHTH" if not handrail_flag and "WELCOME ONBOARD" in self._EngDisplay else name
+            self._Inbound_sectionfare = f"${Inbound_sectionfare:.1f}" if isinstance(Inbound_sectionfare,float) and Inbound_sectionfare != -1.0 else comment if comment != '' else "No_PHTH" if not handrail_flag and "WELCOME ONBOARD" in self._EngDisplay else name
             self._Autoskip = False
             self._pages = 1
             self._engscroll = self._EngDisplay.count('@') // 2
@@ -515,8 +520,8 @@ $stoplist2
     
     def add_ddu(self, RTNO:str = '',Outbound_dir:str = '',Inbound_dir:str = '',Outbound_price:float = -1.0,Inbound_price:float = -1.0,sectiontimes_Y:int = 0,sectiontimes_Z:int = 0) -> None:
         self.ddu.append(self.Busstop_DDU(RTNO,Outbound_dir,Inbound_dir,Outbound_price,Inbound_price,sectiontimes_Y,sectiontimes_Z))
-    def add_stopreporter(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0,comment:str = "") -> None:
-        self.stopreporter.append(self.Busstop_Stopreporter(name,EngDisplay,ChiSeconds,EngSeconds,Outbound_sectionfare,Inbound_sectionfare,comment))
+    def add_stopreporter(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0,comment:str = "",provided_id:str = '') -> None:
+        self.stopreporter.append(self.Busstop_Stopreporter(name,EngDisplay,ChiSeconds,EngSeconds,Outbound_sectionfare,Inbound_sectionfare,comment, provided_id = provided_id))
     def add_terminus(self,allexit:bool = False, eric: str = '', destination: str = '', busfull: str = '', flip: list[str] = [], RTID: str = '') -> None:
         self.termini.append(self.Termini(allexit, eric, destination, busfull, flip, RTID))
     # def add_infosystem(self,eric:str =  '',Destination:str = '',RouteNo:str = '') -> None:
@@ -543,6 +548,10 @@ $stoplist2
     def save_to_db(self, filename: str) -> None:
         database_file = sqlite3.connect(f'{filename}')
         c = database_file.cursor()
+        c.execute('DROP TABLE IF EXISTS ddu')
+        c.execute('DROP TABLE IF EXISTS stopreporter')
+        c.execute('DROP TABLE IF EXISTS termini')
+        c.execute('DROP TABLE IF EXISTS infosystem')
         c.execute(f'''CREATE TABLE IF NOT EXISTS ddu (
                 RTNO TEXT, Outbound_dir TEXT, Inbound_dir TEXT,
                 Outbound_price REAL, Inbound_price REAL,
@@ -568,9 +577,9 @@ $stoplist2
             # if i.name[:9] == "_DingDong":
                 # print(i._Inbound_sectionfare, i._Outbound_sectionfare,"|",i.Inbound_sectionfare, i.Outbound_sectionfare)
         c.executemany('INSERT INTO ddu VALUES (?,?,?,?,?,?,?)', [(i.RTNO, i.Outbound_dir, i.Inbound_dir, i.Outbound_price, i.Inbound_price, i.sectiontimes_Y, i.sectiontimes_Z) for i in self.ddu])
-        c.executemany('INSERT INTO stopreporter VALUES (?,?,?,?,?,?,?)', [(i.name, i.EngDisplay, i.ChiSeconds, i.EngSeconds, i.Outbound_sectionfare, i.Inbound_sectionfare, i.comment,i.busstopID) for i in self.stopreporter])
+        c.executemany('INSERT INTO stopreporter VALUES (?,?,?,?,?,?,?,?)', [(i.name, i.EngDisplay, i.ChiSeconds, i.EngSeconds, i.Outbound_sectionfare, i.Inbound_sectionfare, i.comment,i.busstopID) for i in self.stopreporter])
         c.executemany('INSERT INTO termini VALUES (?,?,?,?,?,?,?,?,?)', [(i.allexit, i.eric, i.destination, i.busfull, i.flip[3] if len(i.flip) > 3 else '', i.flip[2] if len(i.flip) > 2 else '', i.flip[1] if len(i.flip) > 1 else '', i.flip[0] if len(i.flip) > 0 else '', i.RTID) for i in self.termini])
-        c.executemany('INSERT INTO infosystem VALUES (?,?,?,?,?,?)', [(i.single_or_dual_dir, i.route, i.direction1, i.direction2, "\n".join(i.busstop_list1_class.db_export), "\n".join(i.busstop_list2_class.db_export), i.busstop_list1_class.db_export_withid, i.busstop_list2_class.db_export_withid) for i in self.infosystem])
+        c.executemany('INSERT INTO infosystem VALUES (?,?,?,?,?,?,?,?)', [(i.single_or_dual_dir, i.route, i.direction1, i.direction2, "\n".join(i.busstop_list1_class.db_export), "\n".join(i.busstop_list2_class.db_export), i.busstop_list1_class.db_export_withid, i.busstop_list2_class.db_export_withid) for i in self.infosystem])
 
         database_file.commit()
         database_file.close()
@@ -667,6 +676,8 @@ $stoplist2
             ls[index] = list(i)
             ls[index][4] = ls[index][4].split('\n') if isinstance(ls[index][4], str) else []
             ls[index][5] = ls[index][5].split('\n') if isinstance(ls[index][5], str) else []
+            ls[index][6] = ls[index][6].split('\n') if isinstance(ls[index][6], str) else []
+            ls[index][7] = ls[index][7].split('\n') if isinstance(ls[index][7], str) else []
             # ls[index][5] = ls[index][5][1:-1].replace("'","").split(', ')
         self.infosystem = [self.Infosystem(*i) for i in ls]
         database_file.close()
@@ -816,7 +827,9 @@ $stoplist2
         self.stopreporter = hof_entry.stopreporter
         self.termini = hof_entry.termini
         self.infosystem = hof_entry.infosystem
-        
+        temp = {i.busstopID: i.name for i in self.stopreporter}
+        if not temp.get('Blank'):
+            self.add_stopreporter(name='Blank', EngDisplay='', ChiSeconds=0, EngSeconds=0, Outbound_sectionfare=0.0, Inbound_sectionfare=0.0, comment='', provided_id='Blank')
         print(f"Loaded from {filename}")
 
     def new_from_map(self, map_location: str) -> None:
