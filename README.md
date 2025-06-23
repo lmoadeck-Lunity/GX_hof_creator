@@ -106,11 +106,7 @@ We welcome contributions! Here's how you can help:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Qt/PySide6 development team
+This project is licensed under the MPL-2.0 License - see the [LICENSE](LICENSE) file for details.
 
 ## 📞 Support
 
