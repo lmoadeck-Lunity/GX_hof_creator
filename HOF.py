@@ -602,7 +602,10 @@ $stoplist2
                 if busstop_id is not None:
                     info.busstop_list1_class.bustops_withid[index] = busstop_id
                 else:
-                    print(f"Warning: Busstop '{stop_name}' not found in stopreporter.")
+                    if info.busstop_list1_class._busstops[index] == "":
+                        pass
+                    else:
+                        print(f"Warning: Busstop '{stop_name}' not found in stopreporter.")
     
             # Process second bus stop list
             for index, stop_name in enumerate(info.busstop_list2_class.db_export):
@@ -610,7 +613,10 @@ $stoplist2
                 if busstop_id is not None:
                     info.busstop_list2_class.bustops_withid[index] = busstop_id
                 else:
-                    print(f"Warning: Busstop '{stop_name}' not found in stopreporter.")
+                    if info.busstop_list2_class._busstops[index] == "":
+                        pass
+                    else:
+                        print(f"Warning: Busstop '{stop_name}' not found in stopreporter.")
     
     # ...existing code...
         # for i in self.infosystem:

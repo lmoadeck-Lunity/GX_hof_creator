@@ -228,8 +228,13 @@ class Main(QMainWindow):
             #     self.ui.listWidget_5.addItem(ericcode(i.eric).retstr()) #termini
             # for i in Main.hof_class.infosystem:
             #     self.ui.listWidget_2.addItem(i.route) #infosystem
-            self.ui.listWidget_3.addItems([i.name for i in Main.hof_class.stopreporter])
-            print(f"Stopreporter: {[i.name for i in Main.hof_class.stopreporter]}")
+            # self.ui.listWidget_3.addItems([i.name for i in Main.hof_class.stopreporter])
+            # for each in Main.hof_class.stopreporter:
+                # item = QListWidgetItem(each.name)
+                # print(f"Adding item: {each.name} with ID: {each.busstopID}")
+                # self.ui.listWidget_3.addItem(item)
+            # print(f"Stopreporter: {[i.name for i in Main.hof_class.stopreporter]}")
+            
             self.busstop_id_to_index = {}
             self.add_bs_to_dict()
             Main.stopreporter_genlist = ["" for _ in range(len(Main.hof_class.stopreporter))]
@@ -273,7 +278,7 @@ class Main(QMainWindow):
             self.ui.pushButton_21.clicked.connect(lambda: self.sort_stuff(3))
 
             #----Infosystem Part----#
-            self.ui.listWidget_2.itemSelectionChanged.connect(self.change_rt_info)
+            # self.ui.listWidget_2.itemSelectionChanged.connect(self.change_rt_info)
             self.ui.listWidget_2.itemSelectionChanged.connect(self.get_bsl)
             
             # self.ui.listWidget_2.itemSelectionChanged.connect(self.dirchange_Y) # shit change
@@ -503,6 +508,27 @@ class Main(QMainWindow):
             if stuff == 1:
                 ite = self.ui.listWidget_3.currentIndex()
                 index = ite.row()
+                bs_obj = Main.hof_class.stopreporter[index]
+                if bs_obj.busstopID in self.busstop_id_to_index:
+                    cur_index = self.busstop_id_to_index[bs_obj.busstopID]
+                    del self.busstop_id_to_index[bs_obj.busstopID]
+                    for key, value in self.busstop_id_to_index.items():
+                        if value > cur_index:
+                            self.busstop_id_to_index[key] -= 1
+                for i in Main.hof_class.infosystem:
+                    if bs_obj.busstopID in i.busstop_list1_class.bustops_withid:
+                        index_to_remove = i.busstop_list1_class.bustops_withid.index(bs_obj.busstopID)
+                        i.busstop_list1_class._busstops.pop(index_to_remove)
+                        i.busstop_list1_class.bustops_withid.pop(index_to_remove)
+                        # i.busstop_list1_class._busstops.remove(bs_obj.name)
+                        # i.busstop_list1_class.bustops_withid.remove(bs_obj.busstopID)
+                    if bs_obj.busstopID in i.busstop_list2_class.bustops_withid:
+                        index_to_remove = i.busstop_list2_class.bustops_withid.index(bs_obj.busstopID)
+                        i.busstop_list2_class._busstops.pop(index_to_remove)
+                        i.busstop_list2_class.bustops_withid.pop(index_to_remove)
+                        # i.busstop_list2_class._busstops.remove(bs_obj.name)
+                        # i.busstop_list2_class.bustops_withid.remove(bs_obj.busstopID)
+                print()
                 Main.hof_class.stopreporter.pop(index)
                 self.ui.listWidget_3.takeItem(index)
             elif stuff == 2:
@@ -849,7 +875,7 @@ class Main(QMainWindow):
             self.bus_rt_direction = 2
             # print(self.bus_rt_direction)
             self.get_bsl()
-        def get_bsl(self):
+        def get_bsl(self,reset_rtbslLV:bool = True):
             # print("hi")
             item = self.ui.listWidget_2.currentIndex()
             index = item.row()
@@ -874,25 +900,28 @@ class Main(QMainWindow):
                     item.setData(Qt.ItemDataRole.UserRole, each)  # Store the busstopID directly
                     self.ui.listWidget.addItem(item)
                 else:
-                    # Track missing bus stops - no fallback
-                    missing_bus_stops.append(each)
+                    if Main.hof_class.infosystem[index].db_export_bsl1[i] == '' and self.bus_rt_direction == 1:
+                        # If the bus stop ID is empty, skip it
+                        continue
+                    elif Main.hof_class.infosystem[index].db_export_bsl2[i] == '' and self.bus_rt_direction == 2:
+                        continue
+                    else:
+                        missing_bus_stops.append(i)
             
             # Show error message if there are missing bus stops
             if missing_bus_stops:
                 QMessageBox.warning(
                     self, 
                     "Missing Bus Stops", 
-                    f"The following bus stop IDs could not be found:\n{', '.join(missing_bus_stops)}\n\n"
+                    f"The following bus stop IDs could not be found:\n{', '.join([Main.hof_class.infosystem[index].db_export_bsl1[j] if self.bus_rt_direction == 1 else Main.hof_class.infosystem[index].db_export_bsl2[j] for j in missing_bus_stops])}\n\n"
                     f"This may indicate corrupted data or missing bus stops.",
                     QMessageBox.StandardButton.Ok
                 )
             
-            self.ui.listWidget.setCurrentIndex(self.ui.listWidget.model().index(index_2, 0))
+            self.ui.listWidget.setCurrentIndex(self.ui.listWidget.model().index(index_2, 0)) if reset_rtbslLV else None
                 
-        def change_rt_info(self):
-            self.bus_rt_direction = 1
-            item =  self.ui.listWidget_2.currentIndex()
-            index = item.row()
+            
+
             # self.ui.tableWidget.setItem(0, 0, QTableWidgetItem(Main.hof_class.infosystem[index].route))
             # self.ui.tableWidget.setItem(0, 1, QTableWidgetItem(Main.hof_class.infosystem[index].direction1))
             # self.ui.tableWidget.setItem(0, 2, QTableWidgetItem(Main.hof_class.infosystem[index].direction2))
@@ -922,6 +951,18 @@ class Main(QMainWindow):
             if Main.export_path == "":
                 Main.export_path = Main().fileexplorer()
             Main.hof_class.name = Main.hofname
+            for i in Main.hof_class.infosystem:
+                for index,j in enumerate(i.busstop_list1_class.bustops_withid):
+                    a = self.busstop_id_to_index.get(j, j)  # Use the ID to get the index
+                    if isinstance(a, int):
+                        i.busstop_list1_class._busstops[index] = Main.hof_class.stopreporter[a].name
+
+                for index,j in enumerate(i.busstop_list2_class.bustops_withid):
+                    a = self.busstop_id_to_index.get(j, j)
+                    if isinstance(a, int):
+                        i.busstop_list2_class._busstops[index] = Main.hof_class.stopreporter[a].name
+            Main.hof_class.fill_busttoplist_with_id()
+                    
             Main.hof_class.export_hof(Main.export_path + "/" + Main.hofname + ".hof")
             QMessageBox.information(self, "Saved", "Saved to " + Main.export_path + "/" + Main.hofname + ".hof")
         def closeEvent(self, event: QCloseEvent) -> None:
@@ -950,10 +991,25 @@ class Main(QMainWindow):
             self.ui.doubleSpinBox.setValue(osf)
             self.ui.doubleSpinBox_2.setValue(isf)
             self.ui.checkBox.setChecked(True if name[0] == "_" else False)
+            self.ui.pushButton.clicked.connect(self.get_routes_bs_in)
             orig_autoskip = (True if name[0] == "_" else False)
             self.hofview = Main.opened_windows[0]
         def get_bs(self):
             Main.raise_unimplemented()
+        def get_routes_bs_in(self):
+            """Get the routes that this bus stop is in."""
+            idself = Main.hof_class.stopreporter[self.curindex].busstopID
+            routes = []
+            for i in Main.hof_class.infosystem:
+                if idself in i.busstop_list1_class.bustops_withid:
+                    routes.append(f"{i.route} (Y)")
+                if idself in i.busstop_list2_class.bustops_withid:
+                    routes.append(f"{i.route} (Z)")
+            if routes:
+                QMessageBox.information(self, "Routes", f"This bus stop is in the following routes:\n" + "\n".join(routes), QMessageBox.Ok)
+            else:
+                QMessageBox.information(self, "Routes", "This bus stop is not in any routes.", QMessageBox.Ok)
+                    
         def closeEvent(self,event):
 
 
@@ -968,8 +1024,8 @@ class Main(QMainWindow):
             # lst = [self.ui.plainTextEdit.document().isModified(), self.ui.plainTextEdit_2.document().isModified(), self.ui.spinBox.value() != 0, self.ui.spinBox_2.value() != 0, self.ui.doubleSpinBox.value() != 0.0, self.ui.doubleSpinBox_2.value() != 0.0]
 
             # if 
-            Main.hof_class.stopreporter[self.curindex].name = self.ui.lineEdit.text()
-            Main.hof_class.stopreporter[self.curindex].EngDisplay = self.ui.lineEdit_2.text()
+            Main.hof_class.stopreporter[self.curindex].name = self.ui.lineEdit.text().strip()
+            Main.hof_class.stopreporter[self.curindex].EngDisplay = self.ui.lineEdit_2.text().strip()
             Main.hof_class.stopreporter[self.curindex].ChiSeconds = self.ui.spinBox.value()
             Main.hof_class.stopreporter[self.curindex].EngSeconds = self.ui.spinBox_2.value()
             Main.hof_class.stopreporter[self.curindex].Outbound_sectionfare = self.ui.doubleSpinBox.value()
@@ -1077,7 +1133,7 @@ class Main(QMainWindow):
             while count < 4:
                 print(count,lim,files[0])
                 # print(files[0][count],re.findall(r'^.*hanover/', files[0][count]))
-                self.ui.tableWidget.setItem(3-count, 0, (QTableWidgetItem("" if count > lim else re.sub(r'^.*?hanover/', '', files[0][count]))))#QTableWidgetItem(re.sub(r'^.*?hanover/', '', files[0][count])) if count < lim else QTableWidgetItem("")))
+                self.ui.tableWidget.setItem(3-count, 0, (QTableWidgetItem("" if count > lim else re.sub(r'(?i:^.*?hanover/)', '', files[0][count]))))#QTableWidgetItem(re.sub(r'^.*?hanover/', '', files[0][count])) if count < lim else QTableWidgetItem("")))
                 count += 1
 
         def closeEvent(self, event):
@@ -1091,6 +1147,10 @@ class Main(QMainWindow):
                     disps.append(item.text())
                 else:
                     disps.append("")
+                    
+            count_empty = disps.count('')
+            if count_empty > 0 and (disps[3] != '' and disps[0] == ''):
+                disps = disps[::-1]
             print(disps)
             Main.hof_class.termini[self.curindex].flip = disps
             self.sig.connect(Main.opened_windows[0].update_listviews)

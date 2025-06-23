@@ -17,8 +17,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QDoubleSpinBox, QGridLayout,
     QLabel, QLineEdit, QMainWindow, QMenuBar,
-    QSizePolicy, QSpinBox, QStatusBar, QVBoxLayout,
-    QWidget)
+    QPushButton, QSizePolicy, QSpinBox, QStatusBar,
+    QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -76,6 +76,11 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addWidget(self.label_7)
 
+        self.label_9 = QLabel(self.centralwidget)
+        self.label_9.setObjectName(u"label_9")
+
+        self.verticalLayout_2.addWidget(self.label_9)
+
 
         self.gridLayout.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
 
@@ -129,6 +134,11 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.lineEdit_4)
 
+        self.pushButton = QPushButton(self.centralwidget)
+        self.pushButton.setObjectName(u"pushButton")
+
+        self.verticalLayout.addWidget(self.pushButton)
+
 
         self.gridLayout.addLayout(self.verticalLayout, 0, 1, 1, 1)
 
@@ -157,6 +167,8 @@ class Ui_MainWindow(object):
         self.label.setText(QCoreApplication.translate("MainWindow", u"Autoskip?", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"Chi Disp 6W(Optional)", None))
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"Chi Disp 8W(Optional)", None))
+        self.label_9.setText(QCoreApplication.translate("MainWindow", u"Check Routes that this stop is in", None))
         self.checkBox.setText("")
+        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"PushButton", None))
     # retranslateUi
 
