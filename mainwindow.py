@@ -951,6 +951,12 @@ class Main(QMainWindow):
             if Main.export_path == "":
                 Main.export_path = Main().fileexplorer()
             Main.hof_class.name = Main.hofname
+            lsa = [i.name.lower() for i in Main.hof_class.stopreporter]
+            if "blank_2pages" not in lsa:
+                Main.hof_class.add_stopreporter("blank_2pages", "", 0, 0, -1.0, -1.0)
+            if "blank" not in lsa:
+                Main.hof_class.add_stopreporter("blank", "", 0, 0, -1.0, -1.0)
+                
             for i in Main.hof_class.infosystem:
                 for index,j in enumerate(i.busstop_list1_class.bustops_withid):
                     a = self.busstop_id_to_index.get(j, j)  # Use the ID to get the index
@@ -961,8 +967,54 @@ class Main(QMainWindow):
                     a = self.busstop_id_to_index.get(j, j)
                     if isinstance(a, int):
                         i.busstop_list2_class._busstops[index] = Main.hof_class.stopreporter[a].name
+                        
+                effective_stop = 0        
+                for index, j in enumerate(i.busstop_list1_class._busstops):
+                    if not j.startswith("_"):
+                        effective_stop += 1
+                if effective_stop >= 40: 
+                    if i.busstop_list1_class._busstops[-1] != "blank_2pages" and  i.busstop_list1_class._busstops[-1] != "blank":
+                        i.busstop_list1_class._busstops.append("blank_2pages")
+                    elif i.busstop_list1_class._busstops[-1] == "blank":
+                        i.busstop_list1_class._busstops[-1] = "blank_2pages"
+            for i in Main.hof_class.infosystem:
+                for index,j in enumerate(i.busstop_list1_class.bustops_withid):
+                    a = self.busstop_id_to_index.get(j, j)  # Use the ID to get the index
+                    if isinstance(a, int):
+                        i.busstop_list1_class._busstops[index] = Main.hof_class.stopreporter[a].name
+
+                for index,j in enumerate(i.busstop_list2_class.bustops_withid):
+                    a = self.busstop_id_to_index.get(j, j)
+                    if isinstance(a, int):
+                        i.busstop_list2_class._busstops[index] = Main.hof_class.stopreporter[a].name
+                        
+                effective_stop = 0        
+                for index, j in enumerate(i.busstop_list1_class._busstops):
+                    if not j.startswith("_"):
+                        effective_stop += 1
+                if effective_stop >= 40: 
+                    if i.busstop_list1_class._busstops[-1].lower() != "blank_2pages" and  i.busstop_list1_class._busstops[-1].lower() != "blank":
+                        i.busstop_list1_class._busstops.append("blank_2pages")
+                    elif i.busstop_list1_class._busstops[-1].lower() == "blank":
+                        i.busstop_list1_class._busstops[-1] = "blank_2pages"
+                else: 
+                    if i.busstop_list1_class._busstops[-1].lower() != "blank":
+                        i.busstop_list1_class._busstops.append("blank")
+                effective_stop = 0        
+                for index, j in enumerate(i.busstop_list2_class._busstops):
+                    if not j.startswith("_"):
+                        effective_stop += 1
+                if effective_stop >= 40: 
+                    if i.busstop_list2_class._busstops[-1] != "blank_2pages" and  i.busstop_list2_class._busstops[-1] != "blank":
+                        i.busstop_list2_class._busstops.append("blank_2pages")
+                    elif i.busstop_list2_class._busstops[-1] == "blank":
+                        i.busstop_list2_class._busstops[-1] = "blank_2pages"
+                else:
+                    if i.busstop_list2_class._busstops[-1] != "blank":
+                        i.busstop_list2_class._busstops.append("blank")
+                
             Main.hof_class.fill_busttoplist_with_id()
-                    
+            
             Main.hof_class.export_hof(Main.export_path + "/" + Main.hofname + ".hof")
             QMessageBox.information(self, "Saved", "Saved to " + Main.export_path + "/" + Main.hofname + ".hof")
         def closeEvent(self, event: QCloseEvent) -> None:

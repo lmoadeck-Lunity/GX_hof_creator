@@ -5,7 +5,8 @@ import sys
 import os
 import hashlib
 import multiprocessing
-        
+
+
 class ericcode:
     mapping = {'a': 11, 'b': 12, 'c':13,'d':21,'e':22,'f':23,'g':31,'h':32,'i':33,'j':41,'k':42,'l':43,'m':51,'n':52,'o':53,'p':61,'q':62,'r':63,'s':71,'t':72,'u':73,'v':81,'w':82,'x':83,'y':91,'z':92,'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9}
     def retstr(self) -> str:
@@ -577,7 +578,9 @@ $stoplist2
             # if i.name[:9] == "_DingDong":
                 # print(i._Inbound_sectionfare, i._Outbound_sectionfare,"|",i.Inbound_sectionfare, i.Outbound_sectionfare)
         c.executemany('INSERT INTO ddu VALUES (?,?,?,?,?,?,?)', [(i.RTNO, i.Outbound_dir, i.Inbound_dir, i.Outbound_price, i.Inbound_price, i.sectiontimes_Y, i.sectiontimes_Z) for i in self.ddu])
-        c.executemany('INSERT INTO stopreporter VALUES (?,?,?,?,?,?,?,?)', [(i.name, i.EngDisplay, i.ChiSeconds, i.EngSeconds, i.Outbound_sectionfare, i.Inbound_sectionfare, i.comment,i.busstopID) for i in self.stopreporter])
+        # c.executemany('INSERT INTO stopreporter VALUES (?,?,?,?,?,?,?,?)', [(i.name, i.EngDisplay, i.ChiSeconds, i.EngSeconds, i.Outbound_sectionfare, i.Inbound_sectionfare, i.comment,i.busstopID) for i in self.stopreporter])
+        for i in self.stopreporter:
+            c.execute('INSERT INTO stopreporter VALUES (?,?,?,?,?,?,?,?)', (i.name, i.EngDisplay, i.ChiSeconds, i.EngSeconds, i.Outbound_sectionfare, i.Inbound_sectionfare, i.comment, i.busstopID))
         c.executemany('INSERT INTO termini VALUES (?,?,?,?,?,?,?,?,?)', [(i.allexit, i.eric, i.destination, i.busfull, i.flip[3] if len(i.flip) > 3 else '', i.flip[2] if len(i.flip) > 2 else '', i.flip[1] if len(i.flip) > 1 else '', i.flip[0] if len(i.flip) > 0 else '', i.RTID) for i in self.termini])
         c.executemany('INSERT INTO infosystem VALUES (?,?,?,?,?,?,?,?)', [(i.single_or_dual_dir, i.route, i.direction1, i.direction2, "\n".join(i.busstop_list1_class.db_export), "\n".join(i.busstop_list2_class.db_export), i.busstop_list1_class.db_export_withid, i.busstop_list2_class.db_export_withid) for i in self.infosystem])
 
@@ -833,9 +836,26 @@ $stoplist2
         self.stopreporter = hof_entry.stopreporter
         self.termini = hof_entry.termini
         self.infosystem = hof_entry.infosystem
-        temp = {i.busstopID: i.name for i in self.stopreporter}
-        if not temp.get('Blank'):
-            self.add_stopreporter(name='Blank', EngDisplay='', ChiSeconds=0, EngSeconds=0, Outbound_sectionfare=0.0, Inbound_sectionfare=0.0, comment='', provided_id='Blank')
+        # temp = [i.name for i in self.stopreporter]
+        # if 'Blank' not in temp:
+        #     self.add_stopreporter(name='Blank', EngDisplay='', ChiSeconds=0, EngSeconds=0, Outbound_sectionfare=0.0, Inbound_sectionfare=0.0, comment='', provided_id='Blank')
+        seta = set()
+        for i in self.stopreporter:
+            seta.add(i.busstopID)
+        if len(seta) != len(self.stopreporter):
+            print("Duplicate busstop IDs found, removing duplicates...")
+            seen_ids = set()
+            unique_stopreporter = []
+            for i in self.stopreporter:
+                if i.busstopID not in seen_ids:
+                    unique_stopreporter.append(i)
+                    seen_ids.add(i.busstopID)
+            self.stopreporter = unique_stopreporter
+        # temp = {i.busstopID: i for i in self.stopreporter}
+        # if not temp.get('89352f27'):
+        #     self.add_stopreporter(name='Blank', EngDisplay='', ChiSeconds=0, EngSeconds=0, Outbound_sectionfare=0.0, Inbound_sectionfare=0.0, comment='', provided_id='89352f27')
+        # lsa = [i.busstopID for i in self.stopreporter]
+        
         print(f"Loaded from {filename}")
 
     def new_from_map(self, map_location: str) -> None:
