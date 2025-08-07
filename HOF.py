@@ -225,7 +225,7 @@ $ls_stopreporter
         
         
         def __str__(self) -> str:
-            return HOF_Hanover.termini_template.substitute(allexit=self._allexit, eric=self.eric, destination=self._destination, busfull=self._busfull, pai_page4 = self._flup4, pai_page3 = self._flup3, pai_page2 = self._flup2,pai_page1 = self._flup1,RTID=self.RTID)
+            return HOF_Hanover.termini_template.substitute(allexit=self._allexit, eric=self._eric.retstr(), destination=self._destination, busfull=self._busfull, pai_page4 = self._flup4, pai_page3 = self._flup3, pai_page2 = self._flup2,pai_page1 = self._flup1,RTID=self.RTID)
 
     class Busstop_Stopreporter:
         def __init__(self, name:str = '',EngDisplay:str = '',ChiSeconds:int = 0,EngSeconds:int = 0,Outbound_sectionfare:float = 0.0,Inbound_sectionfare:float = 0.0,comment: str = '',provided_id:str = "",parent=None) -> None:
