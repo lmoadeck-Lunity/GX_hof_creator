@@ -9,22 +9,35 @@ import multiprocessing
 
 class ericcode:
     mapping = {'a': 11, 'b': 12, 'c':13,'d':21,'e':22,'f':23,'g':31,'h':32,'i':33,'j':41,'k':42,'l':43,'m':51,'n':52,'o':53,'p':61,'q':62,'r':63,'s':71,'t':72,'u':73,'v':81,'w':82,'x':83,'y':91,'z':92,'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9}
+    oristring = ''
     def retstr(self) -> str:
         returnstring = ''.join(self.eric)
-        if len(returnstring) < 6:
+        if len(returnstring) - len(self.oristring) == 1 and returnstring[-1] != 0 or len(returnstring) < 6:
             returnstring = returnstring + '0'
         return returnstring
     def __init__(self, code: str) -> None:
+        self.oristring = code
         self.eric = map(str,[self.mapping[c] for c in (code.lower() if isinstance(code, str) else str(code))])
     def __len__(self) -> int:
         return len(''.join(self.eric))
     def __str__(self) -> str:
         returnstring = ''.join(self.eric)
-        if len(returnstring) < 6:
+        # if len(returnstring) < 6:
+        #     returnstring = returnstring + '0'
+        #     if len(eric) - len(name) == 1 or len(eric) < 6:
+        # eric = eric + '0'
+        if len(returnstring) - len(self.oristring) == 1 and returnstring[-1] != 0 or len(returnstring) < 6:
             returnstring = returnstring + '0'
         return returnstring
     def __int__(self) -> int:
         return int(str(self.retstr()))
+    
+    @property
+    def orig(self) -> str:
+        return self.oristring
+    
+
+            
 class gorbacode:
     mapping = {'a': 11, 'b': 12, 'c':13,'d':21,'e':22,'f':23,'g':31,'h':32,'i':33,'j':41,'k':42,'l':43,'m':51,'n':52,'o':53,'p':61,'q':62,'r':63,'s':71,'t':72,'u':73,'v':81,'w':82,'x':83,'y':91,'z':92,'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9}
     def __init__(self) -> None:
@@ -93,8 +106,8 @@ $Inbound_sectionfare
 ''')
     ddu_template = Template('''[addbusstop]
 $RTNO
-$Outbound_dir \t\t$sectiontimes_Y
-$Inbound_dir \t\t$sectiontimes_Z
+$Outbound_dir          $sectiontimes_Y
+$Inbound_dir           $sectiontimes_Z
 $Outbound_price
 $Inbound_price
 .........................
@@ -111,6 +124,43 @@ $rtno
 $busstops
 
 ''')
+    
+    header_template_v2 = Template('''------------------------------------------
+Created with Hof Creator for GX7767 Hoilun
+https://github.com/FreeHK-Lunity/GX_hof_creator/
+------------------------------------------
+[name]
+$name
+
+[servicetrip]
+$servicetrip
+
+[global_strings]
+0
+
+stringcount_terminus
+6
+
+stringcount_busstop
+4
+''')
+    
+    termini_full_template_v2 = Template('''[addterminus_list]
+$termini
+[end]
+''')
+    
+    termini_template_v2 = Template('''$allexit\t$eric\t$destination\t$busfull\t$pai_page4\t$pai_page3\t$pai_page2\t$pai_page1\t$RTID''')
+    
+    stopreporter_full_template_v2 = Template('''[addbusstop_list]
+$ls_ddu
+$ls_stopreporter                                 
+[end]
+''')
+    stopreporter_template_v2 = Template('''$name\t$EngDisplay\t$ChiSeconds $EngSeconds\t$Outbound_sectionfare\t$Inbound_sectionfare\t$comment''')
+    ddu_template_v2 = Template('''$RTNO\t$Outbound_dir        $sectiontimes_Y\t$Inbound_dir        $sectiontimes_Z\t$Outbound_price\t$Inbound_price''')
+
+									
     def __init__(self,name:str='Default',servicetrip:str='Not In Service') -> None:
         self.name = name
         self.servicetrip = servicetrip
@@ -121,7 +171,7 @@ $busstops
     class Termini:
         def __init__(self,allexit:bool = False, eric: str = "", destination: str = '', busfull: str = '', flip: list[str] = [], RTID: str = '') -> None: #flip is a list of strings, eric will be inputted as '289XZ' and converted to 2899192
             self._allexit = '_allexit' if allexit else ''
-            self._eric = eric
+            self._eric = ericcode(eric)
             self._destination = destination
             self._busfull = busfull
             self._flip = flip
@@ -130,18 +180,19 @@ $busstops
             self._flup2 = flip[1] if len(flip) > 1 else ''
             
             self._flup1 = flip[0] if len(flip) > 0 else ''
-            self._RTID = RTID
+            self._RTID = self._eric.orig if RTID == '' else RTID
 
         @property
         def eric(self) -> str:
             return str(self._eric)
         @eric.setter
         def eric(self, value: str) -> None:
-            self._eric = str(ericcode(value))
-            self._RTID = value[:3]
+            self._eric = ericcode(value)
+            self._RTID = self._eric.orig
         @property
         def RTID(self) -> str:
-            return str(self._RTID)
+            # return str(self._RTID)
+            return f'{self._eric.orig.rjust(6,'0')}+{self._destination}'
         @property
         def destination(self) -> str:
             return str(self._destination)
@@ -542,9 +593,31 @@ $stoplist2
     def showfullhof(self) -> str:
         returnstring = '\n'.join([''.join(self.header_template.substitute(name = self.name,servicetrip = self.servicetrip)),'\n'.join((str(i) for i in self.termini)),'\n'.join(str(i) for i in self.ddu),'\n'.join((str(i) for i in self.stopreporter)),'\n'.join((str(i) for i in self.infosystem))])
         return returnstring
+    def show_hof_v2(self) -> str:
+        list_termini = [self.termini_template_v2.substitute(allexit="{ALLEX}" if i.allexit == '_allexit' else "", eric=i.eric, destination=i.destination, busfull=i.busfull, pai_page4=i.flip[3] if len(i.flip) > 3 else '', pai_page3=i.flip[2] if len(i.flip) > 2 else '', pai_page2=i.flip[1] if len(i.flip) > 1 else '', pai_page1=i.flip[0] if len(i.flip) > 0 else '', RTID=str(i.RTID)) for i in self.termini]
+        list_stopreporter = [self.stopreporter_template_v2.substitute(name=i.name, EngDisplay=i.EngDisplay, ChiSeconds=i.ChiSeconds, EngSeconds=i.EngSeconds, Outbound_sectionfare=i.Outbound_sectionfare, Inbound_sectionfare=i.Inbound_sectionfare, comment=i.comment) for i in self.stopreporter]
+        list_ddu = [self.ddu_template_v2.substitute(RTNO=i.RTNO, Outbound_dir=i.Outbound_dir, sectiontimes_Y=i.sectiontimes_Y, Inbound_dir=i.Inbound_dir, sectiontimes_Z=i.sectiontimes_Z, Outbound_price=i.Outbound_price, Inbound_price=i.Inbound_price) for i in self.ddu]
+        returnstring = '\n'.join([
+            self.header_template_v2.substitute(name=self.name, servicetrip=self.servicetrip),
+            self.termini_full_template_v2.substitute(termini='\n'.join(list_termini)),
+            self.stopreporter_full_template_v2.substitute(ls_ddu='\n'.join(list_ddu), ls_stopreporter='\n'.join(list_stopreporter)),
+            '\n'.join(str(i) for i in self.infosystem)
+        ])
+        
+        # returnstring = '\n'.join([
+        #     self.header_template_v2.substitute(name=self.name, servicetrip=self.servicetrip),
+        #     self.termini_full_template_v2.substitute(termini='\n'.join(str(i) for i in self.termini)),
+        #     self.stopreporter_full_template_v2.substitute(ls_ddu='\n'.join(str(i) for i in self.ddu), ls_stopreporter='\n'.join(str(i) for i in self.stopreporter)),
+        #     '\n'.join(str(i) for i in self.infosystem)
+        # ])
+        return returnstring
     def export_hof(self, filename: str) -> None:
         with open(filename, 'w') as f:
             f.write(self.showfullhof())
+            print(f"Exported to {filename}, all comments have been destroyed.")
+    def export_hof_v2(self, filename: str) -> None:
+        with open(filename, 'w') as f:
+            f.write(self.show_hof_v2())
             print(f"Exported to {filename}, all comments have been destroyed.")
     def save_to_db(self, filename: str) -> None:
         database_file = sqlite3.connect(f'{filename}')
@@ -683,16 +756,18 @@ $stoplist2
         ls = c.fetchall()
         for index, i in enumerate(ls):
             ls[index] = list(i)
-            ls[index][4] = ls[index][4].split('\n') if isinstance(ls[index][4], str) else []
-            ls[index][5] = ls[index][5].split('\n') if isinstance(ls[index][5], str) else []
-            ls[index][6] = ls[index][6].split('\n') if isinstance(ls[index][6], str) else []
-            ls[index][7] = ls[index][7].split('\n') if isinstance(ls[index][7], str) else []
+            ls[index][4] = ls[index][4].strip().split('\n') if isinstance(ls[index][4], str) else []
+            ls[index][5] = ls[index][5].strip().split('\n') if isinstance(ls[index][5], str) else []
+            ls[index][6] = ls[index][6].strip().split('\n') if isinstance(ls[index][6], str) else []
+            ls[index][7] = ls[index][7].strip().split('\n') if isinstance(ls[index][7], str) else []
             # ls[index][5] = ls[index][5][1:-1].replace("'","").split(', ')
         self.infosystem = [self.Infosystem(*i) for i in ls]
         database_file.close()
         print(f"Loaded from {filename}")
 
     def load_from_hof(self, filename: str) -> None:
+        bsl_v2 = False
+        tls_v2 = False
         try:
             hof_entry = HOF_Hanover()
             with open(filename, 'r',encoding="utf-8") as f:
@@ -706,25 +781,136 @@ $stoplist2
                 elif line == "[servicetrip]":
                     hof_entry.servicetrip = lines[i + 1]
                     i += 2
+                elif tls_v2:
+                    datum = line.split('\t')
+                    conversion = [True if datum[0] == '{ALLEX}' else False]
+                    conversion.extend(datum[1:]) # type: ignore
+                    # param1 = lines[i + 8].split("+")
+                    # if len(param1) == 1:
+                    #     eric1 = lines[i+2]
+                    #     out1 = param1[0].strip()
+                    # else:
+                    #     eric1 = param1[0].strip()
+                    #     out1 = param1[1].strip()
+                    param1 = conversion[-1].split("+")
+                    if len(param1) == 1:
+                        eric1 = conversion[1]
+                        out1 = param1[0].strip()
+                    else:
+                        eric1 = param1[0].strip()
+                        out1 = param1[1].strip()
+                    hof_entry.add_terminus(
+                        conversion[0],
+                        conversion[1],
+                        eric1,
+                        conversion[2],
+                        conversion[3:7][::-1],
+                        out1
+                    )
+                    i +=1
+                    continue
+                elif bsl_v2:
+                    datum = line.split('\t')
+                    if len(datum) < 2:
+                        i += 1
+                        continue
+                    # print(datum)
+                    stop_name = datum[0]
+                    if len(stop_name) < 1:
+                        i += 1
+                        continue
+                    if len(stop_name) >= 5 or (len(time_parts := datum[1].split()) <= 2 and time_parts[0].isdigit()):
+                        # parse full stopreporter
+                        chi_sec, eng_sec = 0, 0
+                        time_parts = datum[1].split()
+                        if len(time_parts) >= 1:
+                            chi_sec = int(time_parts[0])
+                        if len(time_parts) >= 2 and time_parts[1].isdigit():
+                            eng_sec = int(time_parts[1])
+                        inbound_price = -1.0
+                        if datum[2].startswith('$'):
+                            inbound_price = float(datum[2].lstrip('$'))
+                            # print(inbound_price)
+                        outbound_price = -1.0
+                        if datum[3].startswith('$'):
+                            outbound_price = float(datum[3].lstrip('$'))
+                            # print("op",outbound_price)
+                        hof_entry.add_stopreporter(
+                            stop_name,
+                            datum[4],
+                            chi_sec,
+                            eng_sec,
+                            inbound_price,
+                            outbound_price,
+                            comment=datum[5] if len(datum) > 5 else ""
+                        )
+                        
+                        i += 6
+                    else:
+                        # parse DDU
+                        sectiontimes_Y = int(datum[1][-1])
+                        sectiontimes_Z = int(datum[2][-1])
+                        inbound_price = float(datum[3].lstrip('$')) if datum[3].startswith('$') else 0.0
+                        outbound_price = float(datum[4].lstrip('$')) if datum[4].startswith('$') else 0.0
+                        hof_entry.add_ddu(
+                            stop_name,
+                            datum[1][:-1].strip(),
+                            datum[2][:-1].strip(),
+                            inbound_price,
+                            outbound_price,
+                            sectiontimes_Y,
+                            sectiontimes_Z
+                        )
+                        
+                        i += 5
+                        continue
+                elif line == '[addterminus_list]':
+                    # bsl_v2 = True
+                    tls_v2 = True
+                elif line == '[addbusstop_list]':
+                    # tls_v2 = True
+                    bsl_v2 = True
+                    
+                elif line == '[end]':
+                    bsl_v2 = False
+                    tls_v2 = False
+                    continue
                 elif line == "[addterminus]":
                     # param = lines[i].replace("[addterminus]", "").strip()
+                    param1 = lines[i + 8].split("+")
+                    if len(param1) == 1:
+                        eric1 = lines[i+2]
+                        out1 = param1[0].strip()
+                    else:
+                        eric1 = param1[0].strip()
+                        out1 = param1[1].strip()
                     hof_entry.add_terminus(
                         False,
                         lines[i + 1],
-                        lines[i + 2],
+                        # lines[i + 2],
+                        eric1,
                         lines[i + 3],
                         lines[i + 4 : i + 8][::-1],
-                        lines[i + 8]
+                        out1
                     )
                     i += 9
                 elif line == "[addterminus_allexit]":
+                    param1 = lines[i + 8].split("+")
+                    if len(param1) == 1:
+                        eric1 = lines[i+2]
+                        out1 = param1[0].strip()
+                    else:
+                        eric1 = param1[0].strip()
+                        out1 = param1[1].strip()
                     hof_entry.add_terminus(
                         True,
                         lines[i + 1],
-                        lines[i + 2],
+                        # lines[i + 2],
+                        eric1,
                         lines[i + 3],
                         lines[i + 4 : i + 8][::-1],
-                        lines[i + 8]
+                        # lines[i + 8]
+                        out1
                     )
                     i += 9
                 elif line == "[addbusstop]":
@@ -819,7 +1005,7 @@ $stoplist2
                             bustoplist2=[]
                         )
                         i = endidx
-
+                
                 else:
                     i += 1
         except Exception as e:

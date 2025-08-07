@@ -19,6 +19,7 @@ from ui_AddDDU import Ui_MainWindow as AddDDU_UI
 from ui_AddRouteEntry import Ui_MainWindow as AddRouteEntry_UI
 from ui_AddTermini import Ui_MainWindow as AddTermini_UI
 from ui_PrefWin import Ui_MainWindow as PrefWin_UI
+from ui_dialog import Ui_Dialog as EricGuesser_UI
 import multiprocessing
 import copy
 import tkinter as tk
@@ -117,6 +118,102 @@ class Main(QMainWindow):
     #     # self.current_data_queue_index %= 50
     #     # self.next_queue_index +=1
     #     # self.next_queue_index %= 50
+    @staticmethod
+    def exhaust_guesses(code):
+        '''Exhausts all guesses of the eric code, returns a list of all guesses with reasonableness scores'''
+        mapping = {'a': 11, 'b': 12, 'c':13,'d':21,'e':22,'f':23,'g':31,'h':32,'i':33,'j':41,'k':42,'l':43,'m':51,'n':52,'o':53,'p':61,'q':62,'r':63,'s':71,'t':72,'u':73,'v':81,'w':82,'x':83,'y':91,'z':92,'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9}
+        
+        # Create reverse mapping for decoding
+        reverse_mapping = {v: k for k, v in mapping.items()}
+        
+        def decode_recursive(remaining_code):
+            if not remaining_code:
+                return [""]
+            
+            results = []
+            
+            # Try interpreting first character as single digit
+            if remaining_code[0].isdigit():
+                digit = int(remaining_code[0])
+                if digit in reverse_mapping:
+                    char = reverse_mapping[digit]
+                    for suffix in decode_recursive(remaining_code[1:]):
+                        results.append(char + suffix)
+            
+            # Try interpreting first two characters as letter code
+            if len(remaining_code) >= 2 and remaining_code[:2].isdigit():
+                two_digit = int(remaining_code[:2])
+                if two_digit in reverse_mapping and reverse_mapping[two_digit].isalpha():
+                    char = reverse_mapping[two_digit].upper()
+                    for suffix in decode_recursive(remaining_code[2:]):
+                        results.append(char + suffix)
+            
+            return results
+    
+        def calculate_reasonableness(result):
+            '''Calculate reasonableness percentage based on letter/digit patterns'''
+            if not result:
+                return 50
+            
+            # Analyze segments of consecutive letters/digits
+            segments = []
+            current_type = None
+            current_length = 0
+            
+            for char in result:
+                char_type = 'letter' if char.isalpha() else 'digit'
+                if char_type == current_type:
+                    current_length += 1
+                else:
+                    if current_type is not None:
+                        segments.append((current_type, current_length))
+                    current_type = char_type
+                    current_length = 1
+            
+            if current_type is not None:
+                segments.append((current_type, current_length))
+            
+            # Calculate score
+            score = 100
+            
+            # Penalize transitions between letters and digits
+            num_transitions = len(segments) - 1
+            score -= num_transitions * 12
+            
+            # Bonus for common patterns
+            if len(segments) == 1:
+                if segments[0][0] == 'letter':
+                    score += 25  # All letters (like "CTB")
+                else:
+                    score += 15  # All digits
+            elif len(segments) == 2:
+                if segments[0][0] == 'digit' and segments[1][0] == 'letter':
+                    score += 10  # Digits then letters (like "289YZ")
+            
+            # Heavy penalty for letters in middle of digit sequences
+            for i in range(1, len(segments) - 1):
+                if (segments[i][0] == 'letter' and segments[i][1] == 1 and
+                    segments[i-1][0] == 'digit' and segments[i+1][0] == 'digit'):
+                    score -= 50  # Letter surrounded by digits (bad pattern)
+            
+            return max(0, min(100, score))
+        
+        # Get all possible decodings
+        all_guesses = decode_recursive(code)
+        unique_guesses = list(set(all_guesses))
+        
+        # Add reasonableness scores
+        scored_guesses = []
+        for guess in unique_guesses:
+            score = calculate_reasonableness(guess)
+            scored_guesses.append((guess, score))
+        
+        # Sort by reasonableness (highest first)
+        scored_guesses.sort(key=lambda x: x[1], reverse=True)
+        
+        
+        return scored_guesses
+    
     @staticmethod
     def maybeSave(lst:list) -> bool:
         if any(lst):
@@ -250,7 +347,8 @@ class Main(QMainWindow):
             self.ui.actionOpen_HOF.triggered.connect(self.reopen_hof)
             self.ui.actionOpen_Project_Folder.triggered.connect(self.open_db)
             self.ui.actionOpen_TTL_for_Route.triggered.connect(lambda: Main.raise_unimplemented())  
-            
+            self.ui.actionEric_Guesser.triggered.connect(self.open_eric_guesser)
+            self.ui.actionExport_HOF_v2.triggered.connect(self.export_hof_v2)
             # self.ui.act
             #----                               ----#
             # thread = Thread(target=self.update_listviews_every_3_minutes)
@@ -900,7 +998,7 @@ class Main(QMainWindow):
                     item.setData(Qt.ItemDataRole.UserRole, each)  # Store the busstopID directly
                     self.ui.listWidget.addItem(item)
                 else:
-                    if Main.hof_class.infosystem[index].db_export_bsl1[i] == '' and self.bus_rt_direction == 1:
+                    if Main.hof_class.infosystem[index].db_export_bsl1[i] == '' and self.bus_rt_direction == 1: 
                         # If the bus stop ID is empty, skip it
                         continue
                     elif Main.hof_class.infosystem[index].db_export_bsl2[i] == '' and self.bus_rt_direction == 2:
@@ -946,77 +1044,136 @@ class Main(QMainWindow):
             QMessageBox.information(self, "Saved", "Saved to " + Main.export_path + "/" + Main.hofname + ".db")
         
         def export_hof(self):
+            """Export HOF file with proper bus stop handling and termination"""
+            # Initialize basic settings
             if Main.hofname == "":
                 Main.hof_class.name = "Untitled"
             if Main.export_path == "":
                 Main.export_path = Main().fileexplorer()
+            
             Main.hof_class.name = Main.hofname
+            
+            # Ensure blank stops exist
+            self._ensure_blank_stops_exist()
+            self.reload_bslist_id()
+            
+            # Process all infosystem entries
+            for info in Main.hof_class.infosystem:
+                # Update bus stop names from IDs
+                self._update_busstop_names(info)
+                
+                # Process direction 1
+                self._ensure_proper_terminator(
+                    info.busstop_list1_class._busstops, 
+                    info.busstop_list1_class.bustops_withid
+                )
+                
+                # Process direction 2
+                self._ensure_proper_terminator(
+                    info.busstop_list2_class._busstops,
+                    info.busstop_list2_class.bustops_withid
+                )
+            
+            # Final processing and export
+            Main.hof_class.fill_busttoplist_with_id()
+            Main.hof_class.export_hof(f"{Main.export_path}/{Main.hofname}.hof")
+            QMessageBox.information(self, "Saved", f"Saved to {Main.export_path}/{Main.hofname}.hof")
+        
+        def _ensure_blank_stops_exist(self):
+            """Ensure blank and blank_2pages stops exist in the stopreporter"""
             lsa = [i.name.lower() for i in Main.hof_class.stopreporter]
             if "blank_2pages" not in lsa:
                 Main.hof_class.add_stopreporter("blank_2pages", "", 0, 0, -1.0, -1.0)
             if "blank" not in lsa:
                 Main.hof_class.add_stopreporter("blank", "", 0, 0, -1.0, -1.0)
-                
-            for i in Main.hof_class.infosystem:
-                for index,j in enumerate(i.busstop_list1_class.bustops_withid):
-                    a = self.busstop_id_to_index.get(j, j)  # Use the ID to get the index
-                    if isinstance(a, int):
-                        i.busstop_list1_class._busstops[index] = Main.hof_class.stopreporter[a].name
-
-                for index,j in enumerate(i.busstop_list2_class.bustops_withid):
-                    a = self.busstop_id_to_index.get(j, j)
-                    if isinstance(a, int):
-                        i.busstop_list2_class._busstops[index] = Main.hof_class.stopreporter[a].name
-                        
-                effective_stop = 0        
-                for index, j in enumerate(i.busstop_list1_class._busstops):
-                    if not j.startswith("_"):
-                        effective_stop += 1
-                if effective_stop >= 40: 
-                    if i.busstop_list1_class._busstops[-1] != "blank_2pages" and  i.busstop_list1_class._busstops[-1] != "blank":
-                        i.busstop_list1_class._busstops.append("blank_2pages")
-                    elif i.busstop_list1_class._busstops[-1] == "blank":
-                        i.busstop_list1_class._busstops[-1] = "blank_2pages"
-            for i in Main.hof_class.infosystem:
-                for index,j in enumerate(i.busstop_list1_class.bustops_withid):
-                    a = self.busstop_id_to_index.get(j, j)  # Use the ID to get the index
-                    if isinstance(a, int):
-                        i.busstop_list1_class._busstops[index] = Main.hof_class.stopreporter[a].name
-
-                for index,j in enumerate(i.busstop_list2_class.bustops_withid):
-                    a = self.busstop_id_to_index.get(j, j)
-                    if isinstance(a, int):
-                        i.busstop_list2_class._busstops[index] = Main.hof_class.stopreporter[a].name
-                        
-                effective_stop = 0        
-                for index, j in enumerate(i.busstop_list1_class._busstops):
-                    if not j.startswith("_"):
-                        effective_stop += 1
-                if effective_stop >= 40: 
-                    if i.busstop_list1_class._busstops[-1].lower() != "blank_2pages" and  i.busstop_list1_class._busstops[-1].lower() != "blank":
-                        i.busstop_list1_class._busstops.append("blank_2pages")
-                    elif i.busstop_list1_class._busstops[-1].lower() == "blank":
-                        i.busstop_list1_class._busstops[-1] = "blank_2pages"
-                else: 
-                    if i.busstop_list1_class._busstops[-1].lower() != "blank":
-                        i.busstop_list1_class._busstops.append("blank")
-                effective_stop = 0        
-                for index, j in enumerate(i.busstop_list2_class._busstops):
-                    if not j.startswith("_"):
-                        effective_stop += 1
-                if effective_stop >= 40: 
-                    if i.busstop_list2_class._busstops[-1] != "blank_2pages" and  i.busstop_list2_class._busstops[-1] != "blank":
-                        i.busstop_list2_class._busstops.append("blank_2pages")
-                    elif i.busstop_list2_class._busstops[-1] == "blank":
-                        i.busstop_list2_class._busstops[-1] = "blank_2pages"
-                else:
-                    if i.busstop_list2_class._busstops[-1] != "blank":
-                        i.busstop_list2_class._busstops.append("blank")
-                
-            Main.hof_class.fill_busttoplist_with_id()
+        
+        def _update_busstop_names(self, info):
+            """Update bus stop names based on their IDs"""
+            # Direction 1
+            for index, stop_id in enumerate(info.busstop_list1_class.bustops_withid):
+                bus_stop_index = self.busstop_id_to_index.get(stop_id)
+                if isinstance(bus_stop_index, int):
+                    info.busstop_list1_class._busstops[index] = Main.hof_class.stopreporter[bus_stop_index].name
             
-            Main.hof_class.export_hof(Main.export_path + "/" + Main.hofname + ".hof")
-            QMessageBox.information(self, "Saved", "Saved to " + Main.export_path + "/" + Main.hofname + ".hof")
+            # Direction 2
+            for index, stop_id in enumerate(info.busstop_list2_class.bustops_withid):
+                bus_stop_index = self.busstop_id_to_index.get(stop_id)
+                if isinstance(bus_stop_index, int):
+                    info.busstop_list2_class._busstops[index] = Main.hof_class.stopreporter[bus_stop_index].name
+        
+        def _ensure_proper_terminator(self, busstop_names, busstop_ids):
+            """Add appropriate blank terminator based on route length"""
+            if not busstop_names:
+                return
+                
+            # Count effective stops (non-hidden)
+            effective_stop = sum(1 for stop in busstop_names if not stop.startswith("_"))
+            
+            # Handle 40+ stops with blank_2pages
+            if effective_stop >= 40:
+                last_stop = busstop_names[-1].lower() if busstop_names else ""
+                if last_stop != "blank_2pages" and last_stop != "blank":
+                    # Add blank_2pages terminator
+                    busstop_names.append("blank_2pages")
+                    blank_id = self._get_blank_id("blank_2pages")
+                    busstop_ids.append(blank_id)
+                elif last_stop == "blank":
+                    # Replace blank with blank_2pages
+                    busstop_names[-1] = "blank_2pages"
+                    blank_id = self._get_blank_id("blank_2pages")
+                    busstop_ids[-1] = blank_id
+            # Handle regular case with blank
+            else:
+                last_stop = busstop_names[-1].lower() if busstop_names else ""
+                if last_stop != "blank":
+                    busstop_names.append("blank")
+                    blank_id = self._get_blank_id("blank")
+                    busstop_ids.append(blank_id)
+        
+        def export_hof_v2(self):
+            """Export HOF file with proper bus stop handling and termination, version 2"""
+            # Initialize basic settings
+            if Main.hofname == "":
+                Main.hof_class.name = "Untitled"
+            if Main.export_path == "":
+                Main.export_path = Main().fileexplorer()
+            Main.hof_class.name = Main.hofname
+            # Ensure blank stops exist
+            self._ensure_blank_stops_exist()
+            self.reload_bslist_id()
+            # Process all infosystem entries
+            for info in Main.hof_class.infosystem:
+                # Update bus stop names from IDs
+                self._update_busstop_names(info)
+                
+                # Process direction 1
+                self._ensure_proper_terminator(
+                    info.busstop_list1_class._busstops, 
+                    info.busstop_list1_class.bustops_withid
+                )
+                
+                # Process direction 2
+                self._ensure_proper_terminator(
+                    info.busstop_list2_class._busstops,
+                    info.busstop_list2_class.bustops_withid
+                )
+            # Final processing and export
+            Main.hof_class.fill_busttoplist_with_id()
+            Main.hof_class.export_hof_v2(f"{Main.export_path}/{Main.hofname}.hof")
+            QMessageBox.information(self, "Saved", f"Saved to {Main.export_path}/{Main.hofname}.hof")
+            
+        def open_eric_guesser(self):
+            """Open the Eric Guesser window"""
+            Main.opened_windows.append(Main.EricGuesser(None))
+            Main.opened_windows[-1].show()
+        
+        
+        def _get_blank_id(self, blank_name):
+            """Get the ID for a blank terminator by name"""
+            for stop in Main.hof_class.stopreporter:
+                if stop.name.lower() == blank_name.lower():
+                    return stop.busstopID
+            return blank_name  # Fallback if somehow not found
         def closeEvent(self, event: QCloseEvent) -> None:
             Main.opened_windows = []
             if hasattr(self, '_updateTimer'):
@@ -1209,7 +1366,83 @@ class Main(QMainWindow):
             self.sig.emit(self.curindex, 3)
             event.accept()
 
+    class EricGuesser(QMainWindow):
+        def __init__(self, parent=None):
+            super().__init__(parent)
+            self.ui = EricGuesser_UI()
+            self.ui.setupUi(self)
+            # self.ui.listWidget.addItems([i.eric for i in Main.hof_class.termini])
+            self.ui.EricSEL.addItems([i.eric for i in Main.hof_class.termini])
+            self.ui.EricSEL.currentItemChanged.connect(self.show_guesses)
+            # self.ui.pushButton.clicked.connect(self.guess)
+            # self.ui.pushButton_2.clicked.connect(self.close)
+            
+            
+        def show_guesses(self):
+            self.ui.EricGuessur.clear()
+            item = self.ui.EricSEL.currentIndex()
+            index = item.row()
+            code = Main.hof_class.termini[index]._eric.orig
+            if not code:
+                code = Main.hof_class.termini[index].eric
+            guesses = Main.exhaust_guesses(code if code[-1] != '0' else code[:-1])
+            
+            
+            
+            for i in guesses:
+                self.ui.EricGuessur.addItem(f"{i[0]} ({i[1]}%)")
+                item = self.ui.EricGuessur.item(self.ui.EricGuessur.count() - 1)
+                item.setData(Qt.ItemDataRole.UserRole, i[0])  # Store the guess as user data
+                
+                
+                
+            # self.ui.EricGuessur.addItems([f"{guess[0]} ({guess[1]}%)" for guess in guesses])
+            # for i in range(self.ui.EricGuessur.count()):
+            #     item = self.ui.EricGuessur.item(i)
+            #     item.setData(Qt.ItemDataRole.UserRole, guess[0])  # Store the index as
+            #     #         for i, each in enumerate(bs_ids):
+                # busstop_obj = None
+                
+                # # Only try lookup by bus stop ID - no fallback
+                # busstop_index = self.busstop_id_to_index.get(each)
+                # if busstop_index is not None:
+                #     busstop_obj = Main.hof_class.stopreporter[busstop_index]
+                #     # Create list item with the bus stop name and store the ID as data
+                #     item = QListWidgetItem(busstop_obj.name)
+                #     item.setData(Qt.ItemDataRole.UserRole, each)  # Store the busstopID directly
+                #     self.ui.listWidget.addItem(item)
+                
+            
         
+            
+        
+        def choose_as_eric(self):
+            """Choose the selected guess as the Eric code."""
+            item = self.ui.EricGuessur.currentItem()
+            if not item:
+                QMessageBox.warning(self, "Error", "Please select a guess to set as Eric code.", QMessageBox.Ok)
+                return
+            
+            eric_code = item.data(Qt.ItemDataRole.UserRole)
+            itema = self.ui.EricSEL.currentIndex()
+            index = itema.row()
+            # index = Main.hof_class.termini[index].eric
+            Main.hof_class.termini[index].eric = eric_code
+            QMessageBox.information(self, "Success", f"Set Eric code to {eric_code} for {Main.hof_class.termini[index].destination}.", QMessageBox.Ok)
+            self.ui.EricSEL.takeItem(itema.row())
+            
+        # def guess(self):
+        #     code = self.ui.lineEdit.text().strip()
+        #     if not code:
+        #         QMessageBox.warning(self, "Error", "Please enter a code to guess.", QMessageBox.Ok)
+        #         return
+        #     results = exhaust_guesses(code)
+        #     if not results:
+        #         QMessageBox.information(self, "No Results", "No guesses found for the given code.", QMessageBox.Ok)
+        #         return
+        #     self.ui.textBrowser.clear()
+        #     for text, score in results:
+        #         self.ui.textBrowser.append(f"{text.upper()} ({score}%)")
 
 
 
